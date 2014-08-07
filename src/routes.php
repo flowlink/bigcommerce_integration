@@ -1,7 +1,7 @@
 <?php
 
 // Register routes.
-$app->get('/oath/callback', 'Sprout\Wombat\Controller\AppController::callbackAction');
+$app->get('/oath', 'Sprout\Wombat\Controller\AppController::callbackAction');
 $app->get('/load', 'Sprout\Wombat\Controller\AppController::loadAction');
 $app->get('/uninstall', 'Sprout\Wombat\Controller\AppController::uninstallAction');
 
