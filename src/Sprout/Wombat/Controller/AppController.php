@@ -77,6 +77,7 @@ class AppController {
 	}
 
 	public function uninstallAction(Request $request, Application $app) {
+		//todo: delete user's data
 		return $app->json("Ok",200);
 	}
 
