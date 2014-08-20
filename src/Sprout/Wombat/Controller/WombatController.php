@@ -33,10 +33,12 @@ class WombatController {
 
 		// Legacy API connection
 		$legacy_api_info = array(
-			'username' => urldecode($request->request->get('api_username')),
-			'path' => urldecode($request->request->get('api_path')),
-			'token' => urldecode($request->request->get('api_token'))
+			'username' => urldecode($parameters['api_username']),
+			'path' => urldecode($parameters['api_path']),
+			'token' => urldecode($parameters['api_token'])
 		);
+		foreach(array('api_username','api_path','api_token') as $api_info) 
+			unset($parameters[$api_info]);
 		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 		$client = $this->legacyAPIClient($legacy_api_info);
 		$response = $client->get('products', array('query' => $parameters));
