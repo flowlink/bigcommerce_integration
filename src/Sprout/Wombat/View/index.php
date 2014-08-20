@@ -115,11 +115,9 @@
 			
 			} else { // request object parsed
 				// make request
-				request_object.legacy_api = {
-					username: encodeURIComponent($('.api_connection_info input[name=api_username]').val()),
-					path: encodeURIComponent($('.api_connection_info input[name=api_path]').val()),
-					token: encodeURIComponent($('.api_connection_info input[name=api_token]').val())
-				};
+				request_object.api_username = encodeURIComponent($('.api_connection_info input[name=api_username]').val());
+				request_object.api_path = encodeURIComponent($('.api_connection_info input[name=api_path]').val());
+				request_object.api_token = encodeURIComponent($('.api_connection_info input[name=api_token]').val());
 				
 				$response.find('textarea').val('Loading...');
 				$response_status.attr('class','response_status').html('loading');

@@ -32,8 +32,12 @@ class WombatController {
 		$parameters = $request->request->get('parameters');
 
 		// Legacy API connection
-		$legacy_api_info = $request->request->get('legacy_api');
-		$store_url = str_replace(array('/api/v2/','/api/v2'),'',urldecode($legacy_api_info['path']));
+		$legacy_api_info = array(
+			'username' => urldecode($request->request->get('api_username')),
+			'path' => urldecode($request->request->get('api_path')),
+			'token' => urldecode($request->request->get('api_token'))
+		);
+		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 		$client = $this->legacyAPIClient($legacy_api_info);
 		$response = $client->get('products', array('query' => $parameters));
 		$response_status = intval($response->getStatusCode());
@@ -87,9 +91,9 @@ class WombatController {
 
 		//set up a request client
 		$client = new Client(array(
-			'base_url' => rtrim(urldecode($connection->path),'/').'/',
+			'base_url' => rtrim($connection->path,'/').'/',
 			'defaults' => array(
-				'auth' => array( urldecode($connection->username), urldecode($connection->token) ),
+				'auth' => array($connection->username, $connection->token),
 				'headers' => array( 'Accept' => 'application/json' )
 			)
 		));
