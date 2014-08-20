@@ -1,4 +1,4 @@
-<h1><a href="<?= WOMBAT_BASE_URL.'/index' ?>">Wombat Webhooks</a></h1>
+<h1><a href="<?php echo WOMBAT_BASE_URL.'/index' ?>">Wombat Webhooks</a></h1>
 
 <div class="block api_connection_info" style="display:none;">
 	<label><span>Username:</span><input type="text" name="api_username" value="athleticapi" placeholder="athleticapi"></label>
@@ -13,16 +13,16 @@
 		<dd>
 			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p><p>Accepts bc product sku &amp; echoes product (wombat)</p>
 			
-			<form class="one_column" action="<?= WOMBAT_BASE_URL.'/get_products' ?>">
+			<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/get_products' ?>">
 				<fieldset>
 					<legend>&rsaquo; get_products &rsaquo; <em>request</em></legend>
-					<? $default_input = array(
+					<?php $default_input = array(
 						'request_id' => '',
 						'parameters' => array(
 							'sku' => 'BIKE-TURQ'
 						)
 					); ?>
-					<textarea><?= json_encode($default_input,JSON_PRETTY_PRINT); ?></textarea>
+					<textarea><?php echo json_encode($default_input,JSON_PRETTY_PRINT); ?></textarea>
 					<button type="submit">Send</button>
 				</fieldset>
 				<fieldset style="display:none;">
