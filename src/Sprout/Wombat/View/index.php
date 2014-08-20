@@ -11,7 +11,9 @@
 	<dl>
 		<dt>get_products</dt>
 		<dd>
-			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p><p>Accepts bc product sku &amp; echoes product (wombat)</p>
+			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p>
+			<p>Accepts bc product sku &amp; echoes product (wombat)</p>
+			<p><a href="https://developer.bigcommerce.com/api/stores/v2/products#list-products" target="_blank">Supported parameters</a>
 			
 			<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/get_products' ?>">
 				<fieldset>
@@ -35,7 +37,9 @@
 		
 		<dt>add_product</dt>
 		<dd>
-			<p>"Send" endpoint (Wombat &raquo; Bigcommerce).</p><p>Accepts wombat object &amp; pushes into BC</p>
+			<p><strong>NOTE:</strong> This endpoint not yet complete.</p>
+			<p>"Send" endpoint (Wombat &raquo; Bigcommerce).</p>
+			<p>Accepts wombat object &amp; pushes into BC</p>
 			
 			<form class="one_column">
 				<fieldset>
