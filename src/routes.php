@@ -1,5 +1,8 @@
 <?php
 
+$app->get('/', 'Sprout\Wombat\Controller\AppController::indexAction');
+$app->get('/index', 'Sprout\Wombat\Controller\AppController::indexAction');
+
 // Register routes.
 $app->get('/oauth', 'Sprout\Wombat\Controller\AppController::callbackAction');
 $app->get('/load', 'Sprout\Wombat\Controller\AppController::loadAction');
@@ -43,6 +46,3 @@ $app->post('/test/persistuser', 'Sprout\Wombat\Controller\AppController::persist
 $app->get('/test/retrieveuser', 'Sprout\Wombat\Controller\AppController::retrieveAction');
 
 
-
-// Dave's test routes
-$app->get('/index', 'Sprout\Wombat\Controller\AppController::indexAction');
