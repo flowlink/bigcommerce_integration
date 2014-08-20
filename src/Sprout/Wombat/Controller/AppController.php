@@ -5,11 +5,13 @@ namespace Sprout\Wombat\Controller;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use GuzzleHttp\Client;
+use GuzzleHttp\Client as Client;
 
 use Sprout\Wombat\Entity\User;
 
 class AppController {
+
+	private $payload;
 
 	/**
 	 * Receive a BigCommerce authorization callback request, will contain:
@@ -20,27 +22,38 @@ class AppController {
 	public function callbackAction(Request $request, Application $app) {
 
 		// construct our payload to send to BC to receive a long-term token
-		$payload = array(
+		$this->payload = array(
 			'client_id' => $app['client_id'],
 			'client_secret' => $app['client_secret'],
 			'redirect_uri' => $app['callback_url'],
 			'grant_type' => 'authorization_code',
-			'code' => $request->query->get('code'),
-			'scope' => $request->query->get('scope'),
-			'context' => $request->query->get('context'),
+			'code' => $request->get('code'),
+			'scope' => $request->get('scope'),
+			'context' => $request->get('context'),
 		);
-
+		
 		//set up a client to send the request
 		$client = new Client();
-		$req = $client->post($app['bc_auth_service'].'/oauth2/token', array(), $payload, array(
-			'exceptions' => false,
+		
+		$resp = $client->post($app['bc_auth_service'].'/oauth2/token', array(
+			'body' => $this->payload,
+			'headers' => array(
+				'Accept' => 'application/json',
+				'Content-Type' => 'application/json'
+			)
 		));
 
-		$resp = $req->send();
-
 		if ($resp->getStatusCode() == 200) {
+
+			echo '<textarea>';
+			echo $resp->getBody();
+			echo '</textarea>';
+
 			//response was good. Get the data and store it for later
 			$data = $resp->json();
+			
+			
+			
 			// list($context, $storeHash) = explode('/', $data['context'], 2);
 			// $key = getUserKey($storeHash, $data['user']['email']);
 
@@ -55,15 +68,23 @@ class AppController {
 		} else {
 			return 'Something went wrong... ['.$resp->getStatusCode().'] '.$resp->getBody();	
 		}
-
 		
 	}
 
 	public function loadAction(Request $request, Application $app) {
-		$data = parse_signed_request($request->get('signed_payload'));
+		
+		$signed_payload = $request->get('signed_payload');
+		
+		if(is_null($signed_payload)) {
+			return 'Invalid signed_payload.';
+		}
+		
+		$data = $this->parse_signed_request($signed_payload, $app);
+		
 		if (empty($data)) {
 			return 'Invalid signed_payload.';
 		}
+		
 		// $redis = new Credis_Client('localhost');
 		// $key = getUserKey($data['store_hash'], $data['user']['email']);
 		// $user = json_decode($redis->get($key), true);
@@ -96,6 +117,18 @@ class AppController {
 
 	}
 
+	public function indexAction(Request $request, Application $app)
+	{
+		include(WOMBAT_VIEW_ROOT.'/header.php');
+		
+		include(WOMBAT_VIEW_ROOT.'/index.php');
+		
+		include(WOMBAT_VIEW_ROOT.'/footer.php');
+		
+		return $app->json(array('Ok'),200);
+	}
+	
+
 	public function persistAction(Request $request, Application $app) {
 		
 		$attributes = array(
@@ -121,18 +154,17 @@ class AppController {
 		return $app->json($user->getAttributes(),200);
 	}
 
-	private function parse_signed_request($signed_request)
+	private function parse_signed_request($signed_request, $app)
 	{
-
-		list($payload, $encoded_sig) = explode('.', $signed_request, 2); 
+		list($this->payload, $encoded_sig) = explode('.', $signed_request, 2); 
 		
 		// decode the data
 		$sig = base64_decode($encoded_sig);
-		$data = json_decode(base64_decode($payload), true);
+		$data = json_decode(base64_decode($this->payload), true);
 		
 		// confirm the signature
-		$expected_sig = hash_hmac('sha256', $payload, clientSecret(), $raw = true);
-		if (time_strcmp($sig, $expected_sig)) {
+		$expected_sig = hash_hmac('sha256', $this->payload, $app['client_secret'], $raw = true);
+		if ($this->time_strcmp($sig, $expected_sig)) {
 			error_log('Bad Signed JSON signature!');
 			return null;
 		}

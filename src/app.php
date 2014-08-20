@@ -31,10 +31,12 @@ $app->error(function (\Exception $e, $code) use($app) {
         return;
     }
     $parts = explode(":", $e->getMessage());
+
     $response = array(
-    	'request_id' => $parts[0],
-    	'summary' => $parts[1],
+    	'request_id' => isset($parts[0]) ? $parts[0] : NULL,
+    	'summary' => isset($parts[1]) ? $parts[1] : NULL,
     	);
+    	
     return $app->json($response,$code); 
 });
 return $app;

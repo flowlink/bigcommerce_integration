@@ -26,48 +26,84 @@ class WombatController {
 	 * Get a list of products from BC
 	 */
 	public function getProductsAction(Request $request, Application $app) {
+		
+		// Input
 		$request_id = $request->request->get('request_id');
 		$parameters = $request->request->get('parameters');
 
-		if(empty($parameters->user->access_token)) {
-			throw new Exception("$request_id:User access_token required",500);
-		}
+		// Legacy API connection
+		$legacy_api_info = $request->request->get('legacy_api');
+		$store_url = str_replace(array('/api/v2/','/api/v2'),'',urldecode($legacy_api_info['path']));
+		$client = $this->legacyAPIClient($legacy_api_info);
+		$response = $client->get('products', array('query' => $parameters));
+		$response_status = intval($response->getStatusCode());
 
-		//contstruct the url from the user context
-		$bc_url = $this->constructBCUrl('/v2/products',$parameters,$app);
-
-		//set up a request client for a get request & send
-		$client = $this->getGetRequestClient($bc_url,$parameters,$app);
-		$resp = $client->send($req);
-
-		//if our response was ok, construct an array of Wombat-formatted product objects
-		if($response->getStatusCode() != 200) {
-			throw new Exception("$request_id:Error received from BigCommerce ".$response->getBody(),500);
-		} else {
-			$bc_data = $response->json();
-			$wombat_data = array();
+		// Response
+		if($response_status === 200) {
 			
-			foreach($bc_data as $bc_product) {
-				$prod = new Product($bc_product);
-				$wombat_data[] = $prod->getWombatData();
+			// get products
+			$bc_data = $response->json(array('object'=>TRUE));
+			$wombat_data = array();
+			if(!empty($bc_data)) {
+				foreach($bc_data as $bc_product) {
+					$bc_product->_store_url = $store_url;
+					$wombatModel = new Product($bc_product, 'bc');
+					$wombatModel->loadAttachedResources($client);
+					$wombat_data[] = $wombatModel->getWombatObject();
+				}
 			}
 
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_id,
-				'products' => $wombat_data,
-				);
-			$app->json($response,200);
+				'request_results' => count($wombat_data),
+				'parameters' => $parameters,
+				'products' => $wombat_data
+			);
+			return $app->json($response, 200);
+			
+		} else if($response_status === 204) { // successful but empty (no results)
+		
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_id,
+				'request_results' => 0,				
+				'parameters' => $parameters,
+				'products' => array()
+			);
+			return $app->json($response, 200);
+			
+		} else { // error
+			
+			throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);
+			
 		}
 	}
 
-	/**
-	 * Set up a sub-query to get BC images for a product,
-	 * using the product's image resource path, supplied with the main
-	 * product data
-	 */
-	private function getProductImages($resource,$parameters) {
+	private function legacyAPIClient($connection)
+	{
+		// legacy connection data
+		$connection = (object) $connection; // support arrays
 
+		//set up a request client
+		$client = new Client(array(
+			'base_url' => rtrim(urldecode($connection->path),'/').'/',
+			'defaults' => array(
+				'auth' => array( urldecode($connection->username), urldecode($connection->token) ),
+				'headers' => array( 'Accept' => 'application/json' )
+			)
+		));
+		
+		return $client;
+	}
+	
+	private function testLegacyAPIClient($client)
+	{
+		$response = $client->get('time');
+
+		if($response->getStatusCode() != 200) {
+			throw new Exception("$request_id:Error received from BigCommerce ".$response->getBody(),500);
+		}
 	}
 
 	/**
@@ -98,7 +134,6 @@ class WombatController {
 		//set up a request client for a get request & send
 		$client = $this->getPostRequestClient($bc_url,$parameters,$app);
 		$resp = $client->send($req);
-
 
 		if($response->getStatusCode() != 201) {
 			throw new Exception("$request_id:Error received from BigCommerce ".$response->getBody(),500);

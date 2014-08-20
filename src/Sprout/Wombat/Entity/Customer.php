@@ -28,14 +28,36 @@ class Customer {
 		if(!$this->data) {
 			return false;
 		}
+		
+		$bc_obj = $this->data;
+		
+		/*** WOMBAT OBJECT ***/
+		$wombat_obj = (object) array(
+			'id' => $bc_obj->id,
+			'firstname' => $bc_obj->first_name,
+			'lastname' => $bc_obj->last_name,
+			'email' => $bc_obj->email,
+			'shipping_address' => (object) array(
+				'address1' => '',
+				'address2' => '',
+				'zipcode' => '',
+				'city' => '',
+				'state' => '',
+				'country' => '',
+				'phone' => '',
+			),
+			'billing_address' => (object) array(
+				'address1' => '',
+				'address2' => '',
+				'zipcode' => '',
+				'city' => '',
+				'state' => '',
+				'country' => '',
+				'phone' => '',
+			)
+		);
 
-		$wombat = new stdClass();
-
-		$wombat->id 								= $data->id;
-		//todo - other fields
-
-		return $wombat;
-
+		return $wombat_obj;
 	}
 
 	/**
@@ -46,8 +68,8 @@ class Customer {
 			return false;
 		}
 
-		$bc = new stdClass();
+		$bc = new \stdClass();
 
-		return $bc;
+		return $this->data;
 	}
 }
