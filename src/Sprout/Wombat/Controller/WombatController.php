@@ -17,6 +17,7 @@ use GuzzleHttp\Client;
 
 use Sprout\Wombat\Entity\User;
 use Sprout\Wombat\Entity\Product;
+use Sprout\Wombat\Entity\Order;
 
 class WombatController {
 
@@ -83,6 +84,70 @@ class WombatController {
 			
 			throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);
 			
+		}
+	}
+	
+	/**
+	 * Get a list of products from BC
+	 */
+	public function getOrdersAction(Request $request, Application $app) {
+		
+		// Input
+		$request_id = $request->request->get('request_id');
+		$parameters = $request->request->get('parameters');
+
+		// Legacy API connection
+		$legacy_api_info = array(
+			'username' => urldecode($parameters['api_username']),
+			'path' => urldecode($parameters['api_path']),
+			'token' => urldecode($parameters['api_token'])
+		);
+		foreach(array('api_username','api_path','api_token') as $api_info) 
+			unset($parameters[$api_info]);
+			
+		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
+		
+		$client = $this->legacyAPIClient($legacy_api_info);
+		$response = $client->get('orders', array('query' => $parameters));
+		$response_status = intval($response->getStatusCode());
+
+		// Response
+		if($response_status === 200) {
+			
+			// get orders
+			$bc_data = $response->json(array('object'=>TRUE));
+			$wombat_data = array();
+			if(!empty($bc_data)) {
+				foreach($bc_data as $bc_order) {
+					$bc_order->_store_url = $store_url;
+					$wombatModel = new Order($bc_order, 'bc');
+					$wombatModel->loadAttachedResources($client);
+					$wombat_data[] = $wombatModel->getWombatObject();
+				}
+			}
+
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_id,
+				'request_results' => count($wombat_data),
+				'parameters' => $parameters,
+				'orders' => $wombat_data
+			);
+			return $app->json($response, 200);
+			
+		} else if($response_status === 204) { // successful but empty (no results)
+		
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_id,
+				'request_results' => 0,				
+				'parameters' => $parameters,
+				'orders' => array()
+			);
+			return $app->json($response, 200);
+			
+		} else { // error
+			throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);			
 		}
 	}
 
@@ -157,9 +222,6 @@ class WombatController {
 	 * Update a product in BC
 	 */
 	public function putProductAction(Request $request, Application $app) {
-	}
-	
-	public function getOrdersAction(Request $request, Application $app) {
 	}
 	public function getShipmentsAction(Request $request, Application $app) {
 	}

@@ -12,7 +12,7 @@
 		<dt>get_products</dt>
 		<dd>
 			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p>
-			<p>Accepts bc product sku &amp; echoes product (wombat)</p>
+			<p>Accepts product params &amp; returns product (wombat)</p>
 			<p><a href="https://developer.bigcommerce.com/api/stores/v2/products#list-products" target="_blank">Supported parameters</a>
 			
 			<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/get_products' ?>">
@@ -35,8 +35,34 @@
 			</form>
 		</dd>
 		
-		<dt>add_product</dt>
+		<dt>get_orders</dt>
 		<dd>
+			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p>
+			<p>Accepts order params &amp; returns orders (wombat)</p>
+			<p><a href="https://developer.bigcommerce.com/api/stores/v2/orders#list-orders" target="_blank">Supported parameters</a>
+			
+			<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/get_orders' ?>">
+				<fieldset>
+					<legend>&rsaquo; get_orders &rsaquo; <em>request</em></legend>
+					<?php $default_input = array(
+						'request_id' => '',
+						'parameters' => array(
+							'customer_id' => '3'
+						)
+					); ?>
+					<textarea><?php echo json_encode($default_input,JSON_PRETTY_PRINT); ?></textarea>
+					<button type="submit">Send</button>
+				</fieldset>
+				<fieldset style="display:none;">
+					<legend>&rsaquo; get_orders &rsaquo; <em>response</em><span class="response_status"></span></legend>
+					<div class="response"><textarea></textarea></div>
+					<button type="button" class="response_clear">Clear</button>
+				</fieldset>
+			</form>
+		</dd>
+		
+		<dt style="display:none;">add_product</dt>
+		<dd style="display:none;">
 			<p><strong>NOTE:</strong> This endpoint not yet complete.</p>
 			<p>"Send" endpoint (Wombat &raquo; Bigcommerce).</p>
 			<p>Accepts wombat object &amp; pushes into BC</p>

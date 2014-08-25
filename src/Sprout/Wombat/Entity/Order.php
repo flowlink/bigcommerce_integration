@@ -5,41 +5,27 @@ namespace Sprout\Wombat\Entity;
 class Order {
 
 	protected $data;
+	private $_attached_resources = array('products','shipping_addresses','coupons');
 
-	public function __construct($data) {
-		$this->data = $data;
+	public function __construct($data, $type='bc') {
+		$this->data[$type] = $data;
 	}
-
-	/*
-		Wombat attributes:
-		id	Unique identifier for the order	String
-		status	Current order status	String
-		channel	Location where order was placed	String
-		email	Customers email address	String
-		currency	Currency ISO code	String
-		placed_on	Date & time order was placed (ISO format)	String
-		totals	Order value totals	OrderTotal
-		line_items	Array of the order’s line items	LineItem Array
-		adjustments	Array ot the orders’ adjustments	Adjustment Array
-		shipping_address	Customers shipping address	Address
-		billing_address	Customers billing address	Address
-		payments	Array of the order’s payments	Payment Array
-	*/
 
 	/**
 	 * Get a Wombat-formatted set of data from a BigCommerce one.
 	 */
 	public function getWombatObject() {
-		if(!$this->data) {
+		if(isset($this->data['wombat']))
+			return $this->data['wombat'];
+		else if(isset($this->data['bc']))
+			$bc_obj = (object) $this->data['bc'];
+		else
 			return false;
-		}
-		
-		$bc_obj = $this->data;
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
 			'id' => $bc_obj->id,
-			'status' => $bc_obj->status,
+			'status' => strtolower($bc_obj->status),
 			'channel' => is_null($bc_obj->external_source) ? $bc_obj->order_source : $bc_obj->external_source,
 			'email' => $bc_obj->billing_address->email,
 			'currency' => $bc_obj->currency_code,
@@ -56,6 +42,7 @@ class Order {
 			'line_items' => array(),
 			'adjustments' => array(),
 			'shipping_address' => (object) array(
+				'id' => $bc_obj->_shipping_address->id,
 				'firstname' => $bc_obj->_shipping_address->first_name,
 				'lastname' => $bc_obj->_shipping_address->last_name,
 				'address1' => $bc_obj->_shipping_address->street_1,
@@ -67,6 +54,7 @@ class Order {
 				'phone' => $bc_obj->_shipping_address->phone
 			),
 			'billing_address' => (object) array(
+				'id' => $bc_obj->_shipping_address->id,
 				'firstname' => $bc_obj->billing_address->first_name,
 				'lastname' => $bc_obj->billing_address->last_name,
 				'address1' => $bc_obj->billing_address->street_1,
@@ -82,35 +70,28 @@ class Order {
 
 		/*** LINE_ITEMS ***/
 		foreach($bc_obj->products as $bc_prod) {
-			$wombat_obj->line_items[] = (object) array(
+			$new_line_item = (object) array(
 				'product_id' => empty($bc_prod->sku) ? $bc_obj->id : $bc_prod->sku,
 				'name' => $bc_prod->name,
 				'quantity' => $bc_prod->quantity,
 				'price' => number_format($bc_prod->price_ex_tax, 2, '.', '')
 			);
-		}
-
-		/*** ADJUSTMENTS per LINE_ITEM ***/
-		/*foreach($bc_obj->products as $bc_prod) {
-			$line_tax = $bc_prod->total_tax + $bc_prod->wrapping_cost_tax;
-			if($line_tax > 0) { // TAX
-				$wombat_obj->adjustments[] = (object) array(
-					'name' => 'Tax',
-					'value' => number_format($line_tax, 2, '.', '')
-				);
-				$wombat_obj->totals->adjustment += $line_tax;
+			
+			// add chosen product options to line item
+			if(!empty($bc_prod->product_options)) {
+				$new_line_item->options = array();
+				foreach($bc_prod->product_options as $bc_option) {
+					$option_key = $bc_option->display_name;
+					$option_val = $bc_option->display_value;
+					$new_option = (object) array(
+						$option_key => $option_val
+					);
+					$new_line_item->options[] = $new_option;
+				}
 			}
+			
+			$wombat_obj->line_items[] = $new_line_item;
 		}
-		
-		foreach($bc_obj->products as $bc_prod) {
-			if($bc_prod->wrapping_cost_ex_tax > 0) { // GIFT WRAPPING
-				$wombat_obj->adjustments[] = (object) array(
-					'name' => 'Gift Wrapping',
-					'value' => number_format($bc_prod->wrapping_cost_ex_tax, 2, '.', '')
-				);
-				$wombat_obj->totals->adjustment += $bc_prod->wrapping_cost_ex_tax;
-			}
-		}*/
 
 		/*** ADJUSTMENTS ***/
 		if($bc_obj->total_tax > 0) { // TAX
@@ -159,20 +140,56 @@ class Order {
 			'payment_method' => $bc_obj->payment_method
 		);
 
+		$this->data['wombat'] = $wombat_obj;
 		return $wombat_obj;
-
 	}
 
 	/**
 	 * Get a BigCommerce-formatted set of data from a Wombat one.
 	 */
 	public function getBigCommerceObject($action = 'create') {
-		if(!$this->data) {
+		if(isset($this->data['bc']))
+			return $this->data['bc'];
+		else if(isset($this->data['wombat']))
+			$wombat_obj = (object) $this->data['wombat'];
+		else
 			return false;
+		
+		$bc_obj = (object) array(
+			'id' => $wombat_obj->id
+		);
+		
+		$this->data['bc'] = $bc_obj;
+		return $bc_obj;
+	}
+	
+	public function loadAttachedResources($client)
+	{
+		// request attached resources		
+		foreach($this->_attached_resources as $resource_name) {
+			if(isset($this->data['bc']->$resource_name)) {
+				$resource = $this->data['bc']->$resource_name;
+			
+				// don't load in resources with id 0 (they don't exist)
+				if(strpos($resource->url,'\/0.json') === FALSE) {				
+					// replace request shell with loaded resource
+					$response = $client->get($resource->url);
+					
+					if(intval($response->getStatusCode()) === 200)
+						$this->data['bc']->$resource_name = $response->json(array('object'=>TRUE));
+					else
+						$this->data['bc']->$resource_name = NULL;
+				}
+			}
+		}
+		
+		
+		// organize extra resources (not really in API)
+		
+		/* First shipping address */
+		if(!empty($this->data['bc']->shipping_addresses)) {
+			$this->data['bc']->_shipping_address = $this->data['bc']->shipping_addresses[0];
 		}
 
-		//$bc = new \stdClass();
-
-		return $this->data;
 	}
 }

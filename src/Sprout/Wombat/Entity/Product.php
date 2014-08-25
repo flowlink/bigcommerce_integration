@@ -212,8 +212,8 @@ class Product {
 			}
 		}
 		
-		// organize extra resources (not really in API)
 		
+		// organize extra resources (not really in API)
 		
 		/*  _categories 	- (contains category paths)
 		*/
@@ -264,6 +264,6 @@ class Product {
 			}
 		}
 		
-
 	}
+	
 }
