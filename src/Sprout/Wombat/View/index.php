@@ -1,5 +1,33 @@
 <h1><a href="<?php echo WOMBAT_BASE_URL.'/index' ?>">Wombat Webhooks</a></h1>
 
+<?php
+
+$webhooks = array(
+
+	'get_products' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'sku' => 'BIKE-TURQ'
+			)
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/products#list-products'
+	),
+	
+	'get_orders' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'customer_id' => '3'
+			)
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders#list-orders'
+	)
+	
+);
+		
+?>
+
 <div class="block api_connection_info" style="display:none;">
 	<label><span>Username:</span><input type="text" name="api_username" value="athleticapi" placeholder="athleticapi"></label>
 	<label><span>Path:</span><input type="text" name="api_path" value="https://store-pijlvyhy.mybigcommerce.com/api/v2/" placeholder="https://store-pijlvyhy.mybigcommerce.com/api/v2/"></label>
@@ -9,77 +37,24 @@
 
 <div class="block">
 	<dl>
-		<dt>get_products</dt>
-		<dd>
-			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p>
-			<p>Accepts product params &amp; returns product (wombat)</p>
-			<p><a href="https://developer.bigcommerce.com/api/stores/v2/products#list-products" target="_blank">Supported parameters</a>
-			
-			<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/get_products' ?>">
-				<fieldset>
-					<legend>&rsaquo; get_products &rsaquo; <em>request</em></legend>
-					<?php $default_input = array(
-						'request_id' => '',
-						'parameters' => array(
-							'sku' => 'BIKE-TURQ'
-						)
-					); ?>
-					<textarea><?php echo json_encode($default_input,JSON_PRETTY_PRINT); ?></textarea>
-					<button type="submit">Send</button>
-				</fieldset>
-				<fieldset style="display:none;">
-					<legend>&rsaquo; get_products &rsaquo; <em>response</em><span class="response_status"></span></legend>
-					<div class="response"><textarea></textarea></div>
-					<button type="button" class="response_clear">Clear</button>
-				</fieldset>
-			</form>
-		</dd>
-		
-		<dt>get_orders</dt>
-		<dd>
-			<p>"Receive" endpoint (Wombat &laquo; Bigcommerce).</p>
-			<p>Accepts order params &amp; returns orders (wombat)</p>
-			<p><a href="https://developer.bigcommerce.com/api/stores/v2/orders#list-orders" target="_blank">Supported parameters</a>
-			
-			<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/get_orders' ?>">
-				<fieldset>
-					<legend>&rsaquo; get_orders &rsaquo; <em>request</em></legend>
-					<?php $default_input = array(
-						'request_id' => '',
-						'parameters' => array(
-							'customer_id' => '3'
-						)
-					); ?>
-					<textarea><?php echo json_encode($default_input,JSON_PRETTY_PRINT); ?></textarea>
-					<button type="submit">Send</button>
-				</fieldset>
-				<fieldset style="display:none;">
-					<legend>&rsaquo; get_orders &rsaquo; <em>response</em><span class="response_status"></span></legend>
-					<div class="response"><textarea></textarea></div>
-					<button type="button" class="response_clear">Clear</button>
-				</fieldset>
-			</form>
-		</dd>
-		
-		<dt style="display:none;">add_product</dt>
-		<dd style="display:none;">
-			<p><strong>NOTE:</strong> This endpoint not yet complete.</p>
-			<p>"Send" endpoint (Wombat &raquo; Bigcommerce).</p>
-			<p>Accepts wombat object &amp; pushes into BC</p>
-			
-			<form class="one_column">
-				<fieldset>
-					<legend>&rsaquo; add_product &rsaquo; <em>request</em></legend>
-					<textarea></textarea>
-					<button type="submit">Send</button>
-				</fieldset>
-				<fieldset style="display:none;">
-					<legend>&rsaquo; add_product &rsaquo; <em>response</em><span class="response_status"></span></legend>
-					<div class="response"><textarea></textarea></div>
-					<button type="button" class="response_clear">Clear</button>
-				</fieldset>
-			</form>
-		</dd>
+		<?php foreach($webhooks as $webhook => $webhook_info): ?>	
+			<dt><?php echo $webhook; ?></dt>
+			<dd>
+				<p><a href="<?php echo $webhook_info->doc_link; ?>" target="_blank"><?php echo isset($webhook_info->doc_title) ? $webhook_info->doc_title : 'Supported parameters'; ?></a></p>
+				<form class="one_column" action="<?php echo WOMBAT_BASE_URL.'/'.$webhook ?>">
+					<fieldset>
+						<legend>&rsaquo; <?php echo $webhook; ?> &rsaquo; <em>request</em></legend>
+						<textarea><?php echo json_encode($webhook_info->default_input,JSON_PRETTY_PRINT); ?></textarea>
+						<button type="submit">Send</button>
+					</fieldset>
+					<fieldset style="display:none;">
+						<legend>&rsaquo; <?php echo $webhook; ?> &rsaquo; <em>response</em><span class="response_status"></span></legend>
+						<div class="response"><textarea></textarea></div>
+						<button type="button" class="response_clear">Clear</button>
+					</fieldset>
+				</form>
+			</dd>
+		<?php endforeach; ?>
 	</dl>
 </div>
 
