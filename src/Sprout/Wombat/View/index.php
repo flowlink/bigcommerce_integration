@@ -22,7 +22,28 @@ $webhooks = array(
 			)
 		),
 		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders#list-orders'
-	)
+	),
+
+	'get_customers' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'customer_group_id' => '0',
+			)
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/customers#list-customers'
+	),
+
+	'get_shipments' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'limit' => '100',
+				//'order_id' => '104',
+			)
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders/shipments#list-shipments'
+	),
 	
 );
 		
