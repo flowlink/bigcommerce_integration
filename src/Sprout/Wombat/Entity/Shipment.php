@@ -41,6 +41,11 @@ class Shipment {
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
 			'id' => $bc_obj->id,
+			'order_id' => $bc_obj->order_id,
+			'email' => !empty($bc_obj->shipping_address->email)?$bc_obj->shipping_address->email:$bc_obj->billing_address->email, // @todo: maybe just one of these, or get from customer profile
+			'shipping_method' => $bc_obj->shipping_method,
+			'updated_at' => $bc_obj->date_created,
+			'shipped_at' => $bc_obj->date_created,
 			);
 
 		$this->data['wombat'] = $wombat_obj;
