@@ -30,21 +30,10 @@ class WombatController {
 	 */
 	public function getProductsAction(Request $request, Application $app) {
 		
-		// Input
-		$request_id = $request->request->get('request_id');
-		$parameters = $request->request->get('parameters');
-
-		// Legacy API connection
-		$legacy_api_info = array(
-			'username' => urldecode($parameters['api_username']),
-			'path' => urldecode($parameters['api_path']),
-			'token' => urldecode($parameters['api_token'])
-		);
-		foreach(array('api_username','api_path','api_token') as $api_info) 
-			unset($parameters[$api_info]);
-		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
-		$client = $this->legacyAPIClient($legacy_api_info);
-		$response = $client->get('products', array('query' => $parameters));
+		$request_data = $this->initRequestData($request);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+		$response = $client->get('products', array('query' => $request_data['parameters']));
 		$response_status = intval($response->getStatusCode());
 
 		// Response
@@ -55,7 +44,7 @@ class WombatController {
 			$wombat_data = array();
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_product) {
-					$bc_product->_store_url = $store_url;
+					$bc_product->_store_url = $request_data['store_url'];
 					$wombatModel = new Product($bc_product, 'bc');
 					$wombatModel->loadAttachedResources($client);
 					$wombat_data[] = $wombatModel->getWombatObject();
@@ -64,9 +53,9 @@ class WombatController {
 
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => count($wombat_data),
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'products' => $wombat_data
 			);
 			return $app->json($response, 200);
@@ -75,16 +64,16 @@ class WombatController {
 		
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => 0,				
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'products' => array()
 			);
 			return $app->json($response, 200);
 			
 		} else { // error
 			
-			throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);
 			
 		}
 	}
@@ -94,23 +83,10 @@ class WombatController {
 	 */
 	public function getOrdersAction(Request $request, Application $app) {
 		
-		// Input
-		$request_id = $request->request->get('request_id');
-		$parameters = $request->request->get('parameters');
-
-		// Legacy API connection
-		$legacy_api_info = array(
-			'username' => urldecode($parameters['api_username']),
-			'path' => urldecode($parameters['api_path']),
-			'token' => urldecode($parameters['api_token'])
-		);
-		foreach(array('api_username','api_path','api_token') as $api_info) 
-			unset($parameters[$api_info]);
-			
-		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
+		$request_data = $this->initRequestData($request);
 		
-		$client = $this->legacyAPIClient($legacy_api_info);
-		$response = $client->get('orders', array('query' => $parameters));
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+		$response = $client->get('orders', array('query' => $request_data['parameters']));
 		$response_status = intval($response->getStatusCode());
 
 		// Response
@@ -121,7 +97,7 @@ class WombatController {
 			$wombat_data = array();
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_order) {
-					$bc_order->_store_url = $store_url;
+					$bc_order->_store_url = $request_data['store_url'];
 					$wombatModel = new Order($bc_order, 'bc');
 					$wombatModel->loadAttachedResources($client);
 					$wombat_data[] = $wombatModel->getWombatObject();
@@ -130,9 +106,9 @@ class WombatController {
 
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => count($wombat_data),
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'orders' => $wombat_data
 			);
 			return $app->json($response, 200);
@@ -141,15 +117,15 @@ class WombatController {
 		
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => 0,				
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'orders' => array()
 			);
 			return $app->json($response, 200);
 			
 		} else { // error
-			throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);			
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);			
 		}
 	}
 
@@ -158,23 +134,10 @@ class WombatController {
 	 */
 	public function getCustomersAction(Request $request, Application $app) {
 
-		// Input
-		$request_id = $request->request->get('request_id');
-		$parameters = $request->request->get('parameters');
-
-		// Legacy API connection
-		$legacy_api_info = array(
-			'username' => urldecode($parameters['api_username']),
-			'path' => urldecode($parameters['api_path']),
-			'token' => urldecode($parameters['api_token'])
-		);
-		foreach(array('api_username','api_path','api_token') as $api_info) 
-			unset($parameters[$api_info]);
-			
-		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
+		$request_data = $this->initRequestData($request);
 		
-		$client = $this->legacyAPIClient($legacy_api_info);
-		$response = $client->get('customers', array('query' => $parameters));
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+		$response = $client->get('customers', array('query' => $request_data['parameters']));
 		$response_status = intval($response->getStatusCode());
 
 		// Response
@@ -185,7 +148,7 @@ class WombatController {
 			$wombat_data = array();
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_customer) {
-					$bc_customer->_store_url = $store_url;
+					$bc_customer->_store_url = $request_data['store_url'];
 					$wombatModel = new Customer($bc_customer, 'bc');
 					//$wombatModel->loadAttachedResources($client);
 					$wombat_data[] = $wombatModel->getWombatObject();
@@ -194,9 +157,9 @@ class WombatController {
 
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => count($wombat_data),
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'customers' => $wombat_data
 			);
 			return $app->json($response, 200);
@@ -205,15 +168,15 @@ class WombatController {
 		
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => 0,				
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'customers' => array()
 			);
 			return $app->json($response, 200);
 			
 		} else { // error
-			throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);			
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);			
 		}
 	}
 
@@ -221,37 +184,25 @@ class WombatController {
 	 * Get a list of customers from BigCommerce
 	 */
 	public function getShipmentsAction(Request $request, Application $app) {
-		// Input
-		$request_id = $request->request->get('request_id');
-		$parameters = $request->request->get('parameters');
-
-		// Legacy API connection
-		$legacy_api_info = array(
-			'username' => urldecode($parameters['api_username']),
-			'path' => urldecode($parameters['api_path']),
-			'token' => urldecode($parameters['api_token'])
-		);
-		foreach(array('api_username','api_path','api_token') as $api_info) 
-			unset($parameters[$api_info]);
-			
-		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 		
-		$client = $this->legacyAPIClient($legacy_api_info);
+		$request_data = $this->initRequestData($request);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
 		$order_ids = array();
 		$shipments = array();
 
 		//if we've been given an order_id, just grab shipments for that order, otherwise, construct a list of orders
 		// @todo: call the getOrdersAction to do this?
-		if(!array_key_exists('order_id', $parameters)) {
+		if(!array_key_exists('order_id', $request_data['parameters'])) {
 
 			//	Grab lists of orders that are 'shipped' or 'partially shipped' and merge them
 			//	(BC API doesn't have filter logic, so we have to do them separately)
 			
 
 			// @todo: get the status IDs from the BC API?
-			$parameters['status_id'] = '2'; // shipped
-			$response = $client->get('orders', array('query' => $parameters));
+			$request_data['parameters']['status_id'] = '2'; // shipped
+			$response = $client->get('orders', array('query' => $request_data['parameters']));
 			if(intval($response->getStatusCode()) === 200) {
 				$bc_data = $response->json(array('object'=>TRUE));
 				if(!empty($bc_data)) {
@@ -261,8 +212,8 @@ class WombatController {
 				}
 			}
 
-			$parameters['status_id'] = '3'; // partially shipped
-			$response = $client->get('orders', array('query' => $parameters));
+			$request_data['parameters']['status_id'] = '3'; // partially shipped
+			$response = $client->get('orders', array('query' => $request_data['parameters']));
 			if(intval($response->getStatusCode()) === 200) {
 				$bc_data = $response->json(array('object'=>TRUE));
 				if(!empty($bc_data)) {
@@ -275,12 +226,12 @@ class WombatController {
 			}
 
 		} else {
-			$order_ids[] = $parameters['order_id'];
+			$order_ids[] = $request_data['parameters']['order_id'];
 		}
 		
 		foreach($order_ids as $order_id) {
 
-			$response = $client->get('/api/v2/orders/'.$order_id.'/shipments', array('query' => $parameters));
+			$response = $client->get('/api/v2/orders/'.$order_id.'/shipments', array('query' => $request_data['parameters']));
 			$response_status = intval($response->getStatusCode());
 
 			// Response
@@ -291,7 +242,7 @@ class WombatController {
 				$wombat_data = array();
 				if(!empty($bc_data)) {
 					foreach($bc_data as $bc_shipment) {
-						$bc_shipment->_store_url = $store_url;
+						$bc_shipment->_store_url = $request_data['store_url'];
 						$wombatModel = new Shipment($bc_shipment, 'bc');
 						//$wombatModel->loadAttachedResources($client);
 						$wombat_data[] = $wombatModel->getWombatObject();
@@ -307,29 +258,55 @@ class WombatController {
 				// @todo: rework response status logic checking
 				
 			} else { // error
-				throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);			
+				throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);			
 			}
 		}
 
 		if(!empty($shipments)) {
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => count($shipments),
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'shipments' => $shipments
 			);
 			return $app->json($response, 200);
 		} else {
 			//return our success code & data
 			$response = array(
-				'request_id' => $request_id,
+				'request_id' => $request_data['request_id'],
 				'request_results' => 0,				
-				'parameters' => $parameters,
+				'parameters' => $request_data['parameters'],
 				'shipments' => array()
 			);
 			return $app->json($response, 200);
 		}
+	}
+
+	/**
+	 * Perform common initialization tasks for actions
+	 */
+	private function initRequestData(Request $request) {
+		// Input
+		$request_id = $request->request->get('request_id');
+		$parameters = $request->request->get('parameters');
+
+		// Legacy API connection
+		$legacy_api_info = array(
+			'username' => urldecode($parameters['api_username']),
+			'path' => urldecode($parameters['api_path']),
+			'token' => urldecode($parameters['api_token'])
+		);
+		foreach(array('api_username','api_path','api_token') as $api_info) 
+			unset($parameters[$api_info]);
+		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
+
+		return array(
+			'request_id' => $request_id,
+			'parameters' => $parameters,
+			'legacy_api_info' => $legacy_api_info,
+			'store_url' => $store_url,
+			);
 	}
 
 	/**
