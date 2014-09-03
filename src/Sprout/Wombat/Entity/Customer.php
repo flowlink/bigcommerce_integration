@@ -6,8 +6,8 @@ class Customer {
 
 	protected $data;
 
-	public function __construct($data) {
-		$this->data = $data;
+	public function __construct($data, $type='bc') {
+		$this->data[$type] = $data;
 	}
 
 
@@ -25,11 +25,12 @@ class Customer {
 	 * Get a Wombat-formatted set of data from a BigCommerce one.
 	 */
 	public function getWombatObject() {
-		if(!$this->data) {
+		if(isset($this->data['wombat']))
+			return $this->data['wombat'];
+		else if(isset($this->data['bc']))
+			$bc_obj = (object) $this->data['bc'];
+		else
 			return false;
-		}
-		
-		$bc_obj = $this->data;
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
@@ -57,6 +58,7 @@ class Customer {
 			)
 		);
 
+		$this->data['wombat'] = $wombat_obj;
 		return $wombat_obj;
 	}
 
