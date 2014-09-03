@@ -62,14 +62,7 @@ class WombatController {
 			
 		} else if($response_status === 204) { // successful but empty (no results)
 		
-			//return our success code & data
-			$response = array(
-				'request_id' => $request_data['request_id'],
-				'request_results' => 0,				
-				'parameters' => $request_data['parameters'],
-				'products' => array()
-			);
-			return $app->json($response, 200);
+			return $app->json($this->emptyResponse($request_data,'products'), 200);
 			
 		} else { // error
 			
@@ -115,14 +108,7 @@ class WombatController {
 			
 		} else if($response_status === 204) { // successful but empty (no results)
 		
-			//return our success code & data
-			$response = array(
-				'request_id' => $request_data['request_id'],
-				'request_results' => 0,				
-				'parameters' => $request_data['parameters'],
-				'orders' => array()
-			);
-			return $app->json($response, 200);
+			return $app->json($this->emptyResponse($request_data,'orders'), 200);
 			
 		} else { // error
 			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);			
@@ -166,14 +152,7 @@ class WombatController {
 			
 		} else if($response_status === 204) { // successful but empty (no results)
 		
-			//return our success code & data
-			$response = array(
-				'request_id' => $request_data['request_id'],
-				'request_results' => 0,				
-				'parameters' => $request_data['parameters'],
-				'customers' => array()
-			);
-			return $app->json($response, 200);
+			return $app->json($this->emptyResponse($request_data,'customers'), 200);
 			
 		} else { // error
 			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);			
@@ -272,14 +251,7 @@ class WombatController {
 			);
 			return $app->json($response, 200);
 		} else {
-			//return our success code & data
-			$response = array(
-				'request_id' => $request_data['request_id'],
-				'request_results' => 0,				
-				'parameters' => $request_data['parameters'],
-				'shipments' => array()
-			);
-			return $app->json($response, 200);
+			return $app->json($this->emptyResponse($request_data,'shipments'), 200);
 		}
 	}
 
@@ -307,6 +279,20 @@ class WombatController {
 			'legacy_api_info' => $legacy_api_info,
 			'store_url' => $store_url,
 			);
+	}
+
+	/**
+	 * Return a response for successful but empty queries
+	 */
+	private function emptyResponse($request_data, $type) {
+		//return our success code & data
+		$response = array(
+			'request_id' => $request_data['request_id'],
+			'request_results' => 0,				
+			'parameters' => $request_data['parameters'],
+			$type => array()
+		);
+		return $response;
 	}
 
 	/**
