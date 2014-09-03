@@ -90,7 +90,7 @@ class WombatController {
 	}
 	
 	/**
-	 * Get a list of products from BC
+	 * Get a list of orders from BC
 	 */
 	public function getOrdersAction(Request $request, Application $app) {
 		
@@ -242,9 +242,11 @@ class WombatController {
 		$shipments = array();
 
 		//if we've been given an order_id, just grab shipments for that order, otherwise, construct a list of orders
+		// @todo: call the getOrdersAction to do this?
 		if(!array_key_exists('order_id', $parameters)) {
-			//	Step 1: Grab lists of orders that are 'shipped' or 'partially shipped' and merge them
-			// (BC API doesn't have filter logic, so we have to do them separately)
+
+			//	Grab lists of orders that are 'shipped' or 'partially shipped' and merge them
+			//	(BC API doesn't have filter logic, so we have to do them separately)
 			
 
 			// @todo: get the status IDs from the BC API?
@@ -275,7 +277,7 @@ class WombatController {
 		} else {
 			$order_ids[] = $parameters['order_id'];
 		}
-		//echo "IDS:".PHP_EOL.print_r($order_ids,true).PHP_EOL;
+		
 		foreach($order_ids as $order_id) {
 
 			$response = $client->get('/api/v2/orders/'.$order_id.'/shipments', array('query' => $parameters));
@@ -294,7 +296,6 @@ class WombatController {
 						//$wombatModel->loadAttachedResources($client);
 						$wombat_data[] = $wombatModel->getWombatObject();
 					}
-					//echo "ORDER:".PHP_EOL.print_r($wombat_data,true).PHP_EOL;
 					
 					$shipments = array_merge($shipments,$wombat_data);
 					
@@ -309,8 +310,6 @@ class WombatController {
 				throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);			
 			}
 		}
-
-		//echo "SHIPMENTS:".PHP_EOL.print_r($shipments,true).PHP_EOL;
 
 		if(!empty($shipments)) {
 			//return our success code & data
@@ -334,7 +333,7 @@ class WombatController {
 	}
 
 	/**
-	 * 
+	 * Check the request headers for proper authorization tokens from Wombat
 	 */
 	private function authorizeWombat(Request $request, Application $app) {
 		$wombat_store = $app['wombat_store'];
