@@ -19,6 +19,7 @@ use Sprout\Wombat\Entity\User;
 use Sprout\Wombat\Entity\Product;
 use Sprout\Wombat\Entity\Order;
 use Sprout\Wombat\Entity\Customer;
+use Sprout\Wombat\Entity\Shipment;
 
 class WombatController {
 
@@ -217,6 +218,122 @@ class WombatController {
 	}
 
 	/**
+	 * Get a list of customers from BigCommerce
+	 */
+	public function getShipmentsAction(Request $request, Application $app) {
+		// Input
+		$request_id = $request->request->get('request_id');
+		$parameters = $request->request->get('parameters');
+
+		// Legacy API connection
+		$legacy_api_info = array(
+			'username' => urldecode($parameters['api_username']),
+			'path' => urldecode($parameters['api_path']),
+			'token' => urldecode($parameters['api_token'])
+		);
+		foreach(array('api_username','api_path','api_token') as $api_info) 
+			unset($parameters[$api_info]);
+			
+		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
+		
+		$client = $this->legacyAPIClient($legacy_api_info);
+
+		$order_ids = array();
+		$shipments = array();
+
+		//if we've been given an order_id, just grab shipments for that order, otherwise, construct a list of orders
+		if(!array_key_exists('order_id', $parameters)) {
+			//	Step 1: Grab lists of orders that are 'shipped' or 'partially shipped' and merge them
+			// (BC API doesn't have filter logic, so we have to do them separately)
+			
+
+			// @todo: get the status IDs from the BC API?
+			$parameters['status_id'] = '2'; // shipped
+			$response = $client->get('orders', array('query' => $parameters));
+			if(intval($response->getStatusCode()) === 200) {
+				$bc_data = $response->json(array('object'=>TRUE));
+				if(!empty($bc_data)) {
+					foreach($bc_data as $bc_order) {
+						$order_ids[] = $bc_order->id;
+					}
+				}
+			}
+
+			$parameters['status_id'] = '3'; // partially shipped
+			$response = $client->get('orders', array('query' => $parameters));
+			if(intval($response->getStatusCode()) === 200) {
+				$bc_data = $response->json(array('object'=>TRUE));
+				if(!empty($bc_data)) {
+					foreach($bc_data as $bc_order) {
+						if(!in_array($bc_order->id, $order_ids)) { // double check we don't have duplicates
+							$order_ids[] = $bc_order->id;
+						}
+					}
+				}
+			}
+
+		} else {
+			$order_ids[] = $parameters['order_id'];
+		}
+		//echo "IDS:".PHP_EOL.print_r($order_ids,true).PHP_EOL;
+		foreach($order_ids as $order_id) {
+
+			$response = $client->get('/api/v2/orders/'.$order_id.'/shipments', array('query' => $parameters));
+			$response_status = intval($response->getStatusCode());
+
+			// Response
+			if($response_status === 200) {
+				
+				// get customers
+				$bc_data = $response->json(array('object'=>TRUE));
+				$wombat_data = array();
+				if(!empty($bc_data)) {
+					foreach($bc_data as $bc_shipment) {
+						$bc_shipment->_store_url = $store_url;
+						$wombatModel = new Shipment($bc_shipment, 'bc');
+						//$wombatModel->loadAttachedResources($client);
+						$wombat_data[] = $wombatModel->getWombatObject();
+					}
+					//echo "ORDER:".PHP_EOL.print_r($wombat_data,true).PHP_EOL;
+					
+					$shipments = array_merge($shipments,$wombat_data);
+					
+				}
+				
+			} else if($response_status === 204) { // successful but empty (no results)
+				
+				// do nothing?
+				// @todo: rework response status logic checking
+				
+			} else { // error
+				throw new \Exception($request_id.': Error received from BigCommerce '.$response->getBody(),500);			
+			}
+		}
+
+		//echo "SHIPMENTS:".PHP_EOL.print_r($shipments,true).PHP_EOL;
+
+		if(!empty($shipments)) {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_id,
+				'request_results' => count($shipments),
+				'parameters' => $parameters,
+				'shipments' => $shipments
+			);
+			return $app->json($response, 200);
+		} else {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_id,
+				'request_results' => 0,				
+				'parameters' => $parameters,
+				'shipments' => array()
+			);
+			return $app->json($response, 200);
+		}
+	}
+
+	/**
 	 * 
 	 */
 	private function authorizeWombat(Request $request, Application $app) {
@@ -300,8 +417,6 @@ class WombatController {
 	 * Update a product in BC
 	 */
 	public function putProductAction(Request $request, Application $app) {
-	}
-	public function getShipmentsAction(Request $request, Application $app) {
 	}
 
 	//add
