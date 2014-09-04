@@ -95,7 +95,7 @@ class WombatController {
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
 			'body' => (string)json_encode($bc_data),
-			'debug'=>fopen('debug.txt', 'w')
+			//'debug'=>fopen('debug.txt', 'w')
 			);
 		
 		$response = $client->post('products',$options);
