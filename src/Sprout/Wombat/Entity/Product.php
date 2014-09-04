@@ -195,11 +195,12 @@ class Product {
 		$bc_obj = (object) array(
 			//'id' => $wombat_obj->id,
 			'name' => $wombat_obj->name,
-			'price' => $wombat_obj->price,
-			'categories' => array(1),
+			'price' => (String)number_format($wombat_obj->price,2,'.',''),
+			'description' => $wombat_obj->description,
+			'categories' => array(20),
 			'type' => 'physical',
 			'availability' => 'available',
-			'weight' => 1,
+			'weight' => (string)1,
 		);
 		
 		$this->data['bc'] = $bc_obj;
