@@ -108,7 +108,7 @@ class WombatController {
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
-				'summary' => "The product: $wombat_data->sku was created in BigCommerce",
+				'summary' => "The product $bc_data->name was created in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
