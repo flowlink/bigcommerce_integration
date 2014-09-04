@@ -183,8 +183,23 @@ class Product {
 		else
 			return false;
 		
+		/*
+			BC: required to create:
+			name
+			price
+			categories
+			type
+			availability
+			weight
+		*/
 		$bc_obj = (object) array(
-			'id' => $wombat_obj->id
+			//'id' => $wombat_obj->id,
+			'name' => $wombat_obj->name,
+			'price' => $wombat_obj->price,
+			'categories' => array(1),
+			'type' => 'physical',
+			'availability' => 'available',
+			'weight' => 1,
 		);
 		
 		$this->data['bc'] = $bc_obj;
