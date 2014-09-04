@@ -75,9 +75,9 @@ class Customer {
 		
 		// @todo: real data
 		$bc_obj = (object) array(
-			'first_name' => 'Some',
-			'last_name' => 'Person',
-			'email' => 'some.person@example.com',
+			'first_name' => $wombat_obj->firstname,
+			'last_name' => $wombat_obj->lastname,
+			'email' => $wombat_obj->email,
 		);
 		
 		$this->data['bc'] = $bc_obj;
