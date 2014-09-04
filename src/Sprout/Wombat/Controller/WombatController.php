@@ -164,6 +164,42 @@ class WombatController {
 		}
 	}
 
+	public function postOrderAction(Request $request, Application $app) {
+
+		$request_data = $this->initRequestData($request);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('order');
+		
+		$bcModel = new Order($wombat_data,'wombat');
+		$bc_data = $bcModel->getBigCommerceObject('create');
+
+		
+		$options = array(
+			'headers'=>array('Content-Type'=>'application/json'),
+			'body' => (string)json_encode($bc_data),
+			//'debug'=>fopen('debug.txt', 'w')
+			);
+
+		//return $options['body'].PHP_EOL;
+		
+		$response = $client->post('orders',$options);
+		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
+		// make it not do that or catch an exception rather than checking code
+
+		if($response->getStatusCode() != 201) {
+			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
+		} else {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => "The order $bc_data->name was created in BigCommerce",
+				);
+			return $app->json($response,200);
+		}
+	}
+
 	/*
 	
 		CUSTOMER ACTIONS
@@ -401,16 +437,15 @@ class WombatController {
 		}
 	}
 
-	/**
-	 * Update a product in BC
-	 */
+	/*
+
+		UNIMPLEMENTED ACTIONS
+
+	*/
 	public function putProductAction(Request $request, Application $app) {
 	}
 
 	//add
-	
-	public function postOrderAction(Request $request, Application $app) {
-	}
 	public function postShipmentAction(Request $request, Application $app) {
 	}
 	public function postCustomerAction(Request $request, Application $app) {
