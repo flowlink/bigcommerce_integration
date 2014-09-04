@@ -66,12 +66,21 @@ class Customer {
 	 * Get a BigCommerce-formatted set of data from a Wombat one.
 	 */
 	public function getBigCommerceObject($action = 'create') {
-		if(!$this->data) {
+		if(isset($this->data['bc']))
+			return $this->data['bc'];
+		else if(isset($this->data['wombat']))
+			$wombat_obj = (object) $this->data['wombat'];
+		else
 			return false;
-		}
-
-		$bc = new \stdClass();
-
-		return $this->data;
+		
+		// @todo: real data
+		$bc_obj = (object) array(
+			'first_name' => 'Some',
+			'last_name' => 'Person',
+			'email' => 'some.person@example.com',
+		);
+		
+		$this->data['bc'] = $bc_obj;
+		return $bc_obj;
 	}
 }
