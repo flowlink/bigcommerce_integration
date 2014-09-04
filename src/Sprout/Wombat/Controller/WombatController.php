@@ -25,6 +25,12 @@ class WombatController {
 
 	protected $request_id;
 
+	/*
+	
+		PRODUCT ACTIONS
+
+	*/
+
 	/**
 	 * Get a list of products from BC
 	 */
@@ -70,6 +76,49 @@ class WombatController {
 			
 		}
 	}
+
+	/**
+	 * Post a product to BC
+	 */
+	public function postProductAction(Request $request, Application $app) {
+		
+		$request_data = $this->initRequestData($request);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('product');
+		
+		$bcModel = new Product($wombat_data,'wombat');
+		$bc_data = $bcModel->getBigCommerceObject('create');
+
+		
+		$options = array(
+			'headers'=>array('Content-Type'=>'application/json'),
+			'body' => (string)json_encode($bc_data),
+			'debug'=>fopen('debug.txt', 'w')
+			);
+		
+		$response = $client->post('products',$options);
+		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
+		// make it not do that or catch an exception rather than checking code
+
+		if($response->getStatusCode() != 201) {
+			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
+		} else {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => "The product: $wombat_data->sku was created in BigCommerce",
+				);
+			return $app->json($response,200);
+		}
+	}
+
+	/*
+	
+		ORDER ACTIONS
+
+	*/
 	
 	/**
 	 * Get a list of orders from BC
@@ -115,6 +164,12 @@ class WombatController {
 		}
 	}
 
+	/*
+	
+		CUSTOMER ACTIONS
+
+	*/
+
 	/**
 	 * Get a list of customers from BigCommerce
 	 */
@@ -158,6 +213,12 @@ class WombatController {
 			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);			
 		}
 	}
+
+	/*
+	
+		SHIPMENT ACTIONS
+
+	*/
 
 	/**
 	 * Get a list of customers from BigCommerce
@@ -255,6 +316,12 @@ class WombatController {
 		}
 	}
 
+	/*
+
+		SUPPORT FUNCTIONS
+
+	*/
+
 	/**
 	 * Perform common initialization tasks for actions
 	 */
@@ -331,47 +398,6 @@ class WombatController {
 
 		if($response->getStatusCode() != 200) {
 			throw new Exception("$request_id:Error received from BigCommerce ".$response->getBody(),500);
-		}
-	}
-
-	/**
-	 * Post a product to BC
-	 */
-	public function postProductAction(Request $request, Application $app) {
-		$request_id = $request->request->get('request_id');
-		$parameters = $request->request->get('parameters');
-
-		if(empty($parameters->user->access_token)) {
-			throw new Exception("$request_id:User access_token required",500);
-		}
-
-		//contstruct the url from the user context
-		$bc_url = $this->constructBCUrl('/v2/products',$parameters,$app);
-
-
-		//construct the BC data from the Wombat
-		$wombat_data = $response->json();
-		$bc_data = array();
-			
-		foreach($wombat_data as $wombat_product) {
-			$prod = new Product($wombat_product);
-			$bc_data[] = $prod->getBigCommerceData();
-		}
-		$parameters['payload'] = $bc_data;
-
-		//set up a request client for a get request & send
-		$client = $this->getPostRequestClient($bc_url,$parameters,$app);
-		$resp = $client->send($req);
-
-		if($response->getStatusCode() != 201) {
-			throw new Exception("$request_id:Error received from BigCommerce ".$response->getBody(),500);
-		} else {
-			//return our success code & data
-			$response = array(
-				'request_id' => $request_id,
-				'products' => $wombat_data,
-				);
-			$app->json($response,200);
 		}
 	}
 
