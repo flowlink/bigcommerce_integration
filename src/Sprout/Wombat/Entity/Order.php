@@ -155,8 +155,33 @@ class Order {
 		else
 			return false;
 		
+		// @todo: real data
 		$bc_obj = (object) array(
-			'id' => $wombat_obj->id
+			'products' => array(
+				(object) array(
+					'product_id' => 107,
+					'quantity' => rand(1,10),
+					),
+				(object) array(
+					'product_id' => 84,
+					'quantity' => rand(1,10),
+					),
+
+				),
+			'billing_address' => (object) array(
+		    'first_name' => 'Some',
+		    'last_name' => 'Person',
+		    'company' => '',
+		    'street_1' => '123 Some St',
+		    'street_2' => '',
+		    'city' => 'Austin',
+		    'state' => 'Texas',
+		    'zip' => '78757',
+		    'country' => 'United States',
+		    'country_iso2' => 'US',
+		    'phone' => '',
+		    'email' => 'some.person@example.com',
+  		),
 		);
 		
 		$this->data['bc'] = $bc_obj;
