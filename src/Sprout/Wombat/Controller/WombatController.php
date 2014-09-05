@@ -262,8 +262,6 @@ class WombatController {
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
-		echo $response->getStatusCode().PHP_EOL;
-
 		if($response->getStatusCode() != 200) {
 			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
 		} else {
