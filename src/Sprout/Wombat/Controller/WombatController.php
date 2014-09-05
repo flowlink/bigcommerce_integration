@@ -292,7 +292,9 @@ class WombatController {
 	*/
 
 	/**
-	 * Get a list of customers from BigCommerce
+	 * Get a list of shipments from BigCommerce
+	 *
+	 * Can be filtered by Order ID
 	 */
 	public function getShipmentsAction(Request $request, Application $app) {
 		
@@ -384,6 +386,94 @@ class WombatController {
 			return $app->json($response, 200);
 		} else {
 			return $app->json($this->emptyResponse($request_data,'shipments'), 200);
+		}
+	}
+
+	/**
+	 * Get an individual shipment from BC
+	 *
+	 * Unlike getShipmentsAction, this function targets an individual shipment, and must receive an Order and Shipment ID
+	 *
+	 * This is for internal debugging, and has no Wombat translation function
+	 */
+	public function getShipmentAction(Request $request, Application $app) {
+		
+		$request_data = $this->initRequestData($request);
+		$order_id = 		$request->request->get('order_id');
+		$shipment_id = 	$request->request->get('shipment_id');
+
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+		$response = $client->get("orders/$order_id/shipments/$shipment_id", array('query' => $request_data['parameters']));
+		$response_status = intval($response->getStatusCode());
+
+		// Response
+		if($response_status === 200) {
+			
+			// get products
+			$bc_data = $response->json(array('object'=>TRUE));
+			// $wombat_data = array();
+			// if(!empty($bc_data)) {
+			// 	foreach($bc_data as $bc_product) {
+			// 		$bc_product->_store_url = $request_data['store_url'];
+			// 		$wombatModel = new Shipment($bc_product, 'bc');
+			// 		//$wombatModel->loadAttachedResources($client);
+			// 		$wombat_data[] = $wombatModel->getWombatObject();
+			// 	}
+			// }
+
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_data['request_id'],
+				'request_results' => 1,
+				'parameters' => $request_data['parameters'],
+				'shipment' => $bc_data
+			);
+			return $app->json($response, 200);
+			
+		} else if($response_status === 204) { // successful but empty (no results)
+		
+			return $app->json($this->emptyResponse($request_data,'products'), 200);
+			
+		} else { // error
+			
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce '.$response->getBody(),500);
+			
+		}
+	}
+
+	public function postShipmentAction(Request $request, Application $app) {
+		$request_data = $this->initRequestData($request);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('shipment');
+		
+		$bcModel = new Shipment($wombat_data,'wombat');
+		$bcModel->loadAttachedResources($client);
+		$bc_data = $bcModel->getBigCommerceObject('create');
+
+		
+		$options = array(
+			'headers'=>array('Content-Type'=>'application/json'),
+			'body' => (string)json_encode($bc_data),
+			//'debug'=>fopen('debug.txt', 'w')
+			);
+
+		//return $options['body'].PHP_EOL;
+		
+		$response = $client->post("/api/v2/orders/$bc_data->order_id/shipments",$options);
+		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
+		// make it not do that or catch an exception rather than checking code
+
+		if($response->getStatusCode() != 201) {
+			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
+		} else {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => "The shipment for order $bc_data->order_id was created in BigCommerce",
+				);
+			return $app->json($response,200);
 		}
 	}
 
@@ -481,8 +571,7 @@ class WombatController {
 	}
 
 	//add
-	public function postShipmentAction(Request $request, Application $app) {
-	}
+	
 
 	//update
 	
