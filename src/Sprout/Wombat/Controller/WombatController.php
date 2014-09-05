@@ -150,6 +150,13 @@ class WombatController {
 		}
 	}
 
+	/**
+	 * Set inventory level for a product in BigCommerce
+	 *
+	 * Note: Wombat has a separate Inventory object, while BigCommerce tracks inventory in the Product object
+	 *
+	 * @todo: check that the product has inventory_tracking set in BC before attempting to update
+	 */
 	public function setInventoryAction(Request $request, Application $app) {
 		$request_data = $this->initRequestData($request);
 
@@ -176,7 +183,7 @@ class WombatController {
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
-				'summary' => "The product $bc_data->name was updated in BigCommerce",
+				'summary' => "The inventory level for product ID: ".$wombat_data['product_id']." was updated in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
