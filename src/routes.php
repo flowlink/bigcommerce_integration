@@ -15,6 +15,7 @@ $app->get('/uninstall', 'Sprout\Wombat\Controller\AppController::uninstallAction
 $app->post('/get_products', 'Sprout\Wombat\Controller\WombatController::getProductsAction');
 $app->post('/get_orders', 'Sprout\Wombat\Controller\WombatController::getOrdersAction');
 $app->post('/get_shipments', 'Sprout\Wombat\Controller\WombatController::getShipmentsAction');
+$app->post('/get_shipment', 'Sprout\Wombat\Controller\WombatController::getShipmentAction');
 $app->post('/get_customers', 'Sprout\Wombat\Controller\WombatController::getCustomersAction');
 
 //add
