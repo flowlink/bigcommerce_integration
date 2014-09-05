@@ -144,7 +144,7 @@ class WombatController {
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
-				'summary' => "The product $bc_data->name was created in BigCommerce",
+				'summary' => "The product $bc_data->name was updated in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
@@ -231,6 +231,42 @@ class WombatController {
 			$response = array(
 				'request_id' => $request_data['request_id'],
 				'summary' => "The order $bc_data->name was created in BigCommerce",
+				);
+			return $app->json($response,200);
+		}
+	}
+
+	/**
+	 * Update a order in BC
+	 */
+	public function putOrderAction(Request $request, Application $app) {
+
+		$request_data = $this->initRequestData($request);
+
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('order');
+
+		$bcModel = new order($wombat_data,'wombat');
+		$bc_data = $bcModel->getBigCommerceObject('update');
+
+		$options = array(
+			'headers'=>array('Content-Type'=>'application/json'),
+			'body' => (string)json_encode($bc_data),
+			//'debug'=>fopen('debug.txt', 'w')
+			);
+
+		$response = $client->put('orders/'.$wombat_data['id'],$options);
+		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
+		// make it not do that or catch an exception rather than checking code
+
+		if($response->getStatusCode() != 201) {
+			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
+		} else {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => "The order ".$wombat_data['id']." was updated in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
@@ -607,8 +643,7 @@ class WombatController {
 	//add
 	
 	//update
-	public function putOrderAction(Request $request, Application $app) {
-	}
+
 	public function putShipmentAction(Request $request, Application $app) {
 	}
 	public function putCustomerAction(Request $request, Application $app) {
