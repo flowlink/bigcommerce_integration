@@ -138,7 +138,7 @@ class WombatController {
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
-		if($response->getStatusCode() != 201) {
+		if($response->getStatusCode() != 200) {
 			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
 		} else {
 			//return our success code & data
@@ -250,6 +250,8 @@ class WombatController {
 		$bcModel = new order($wombat_data,'wombat');
 		$bc_data = $bcModel->getBigCommerceObject('update');
 
+		//return print_r($bc_data,true);
+
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
 			'body' => (string)json_encode($bc_data),
@@ -260,7 +262,9 @@ class WombatController {
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
-		if($response->getStatusCode() != 201) {
+		echo $response->getStatusCode().PHP_EOL;
+
+		if($response->getStatusCode() != 200) {
 			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
 		} else {
 			//return our success code & data
