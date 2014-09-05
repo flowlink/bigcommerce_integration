@@ -156,34 +156,54 @@ class Order {
 			return false;
 		
 		// @todo: real data
-		$bc_obj = (object) array(
-			'products' => array(
-				(object) array(
-					'product_id' => 107,
-					'quantity' => rand(1,10),
-					),
-				(object) array(
-					'product_id' => 84,
-					'quantity' => rand(1,10),
-					),
+		if($action == 'create') { //this distinction is temporary for testing data, but we may use it for individual fields
+			$bc_obj = (object) array(
+				'products' => array(
+					(object) array(
+						'product_id' => 107,
+						'quantity' => rand(1,10),
+						),
+					(object) array(
+						'product_id' => 84,
+						'quantity' => rand(1,10),
+						),
 
-				),
-			'billing_address' => (object) array(
-		    'first_name' => 'Some',
-		    'last_name' => 'Person',
-		    'company' => '',
-		    'street_1' => '123 Some St',
-		    'street_2' => '',
-		    'city' => 'Austin',
-		    'state' => 'Texas',
-		    'zip' => '78757',
-		    'country' => 'United States',
-		    'country_iso2' => 'US',
-		    'phone' => '',
-		    'email' => 'some.person@example.com',
-  		),
-		);
-		
+					),
+				'billing_address' => (object) array(
+			    'first_name' => 'Some',
+			    'last_name' => 'Person',
+			    'company' => '',
+			    'street_1' => '123 Some St',
+			    'street_2' => '',
+			    'city' => 'Austin',
+			    'state' => 'Texas',
+			    'zip' => '78757',
+			    'country' => 'United States',
+			    'country_iso2' => 'US',
+			    'phone' => '',
+			    'email' => 'some.person@example.com',
+	  		),
+			);
+		} else {
+			$bc_obj = (object) array(
+				// 'billing_address' => (object) array(
+				// 	'first_name' => $wombat_obj->billing_address['firstname'],
+			 //    'last_name' => $wombat_obj->billing_address['lastname'],
+			 //    'company' => '',
+			 //    'street_1' => $wombat_obj->billing_address['address1'],
+			 //    'street_2' => $wombat_obj->billing_address['address2'],
+			 //    'city' => $wombat_obj->billing_address['city'],
+			 //    'state' => $wombat_obj->billing_address['state'],
+			 //    'zip' => $wombat_obj->billing_address['zipcode'],
+			 //    'country' => $wombat_obj->billing_address['country'], // @todo: map codes onto names?
+			 //    'country_iso2' => $wombat_obj->billing_address['country'],
+			 //    'phone' => $wombat_obj->billing_address['phone'],
+			 //    'email' => $wombat_obj->email, // @todo: wombat only has one email per order: override billing/shipping ones, or no?
+				// ),
+				'staff_notes' => 'Updating an order!',
+			);
+		}
+	
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
