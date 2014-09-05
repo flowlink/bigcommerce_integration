@@ -44,6 +44,90 @@ $webhooks = array(
 		),
 		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders/shipments#list-shipments'
 	),
+	'get_shipment' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'limit' => '100',
+				//'order_id' => '104',
+			),
+			'order_id' => 101,
+			'shipment_id' => 4,
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders/shipments#get-shipment'
+	),
+
+	'add_product' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'limit' => '100',
+				),
+			'product' => array(
+				'name' => "Test product",
+				'price' => "19.99",
+				'description' => "Neato thing",
+				'categories' => array(20),
+				'type' => 'physical',
+				'availability' => 'available',
+				'weight' => "1.0",
+			),
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/products#create-product'
+	),
+
+	'add_order' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'limit' => '100',
+				),
+			'order' => array(
+		    'products' => array(
+					(object) array(
+						'product_id' => 107,
+						'quantity' => rand(1,10),
+						),
+					(object) array(
+						'product_id' => 84,
+						'quantity' => rand(1,10),
+						),
+
+					),
+				'billing_address' => (object) array(
+			    'first_name' => 'Some',
+			    'last_name' => 'Person',
+			    'company' => '',
+			    'street_1' => '123 Some St',
+			    'street_2' => '',
+			    'city' => 'Austin',
+			    'state' => 'Texas',
+			    'zip' => '78757',
+			    'country' => 'United States',
+			    'country_iso2' => 'US',
+			    'phone' => '',
+			    'email' => 'some.person@example.com',
+	  		),
+
+			),
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders#create-order'
+	),
+
+	'add_customer' => (object) array(
+		'default_input' => array(
+			'request_id' => '',
+			'parameters' => array(
+				'limit' => '100',
+				),
+			'customer' => array(
+		    'firstname' => 'Some',
+				'lastname' => 'Person',
+				'email' => 'some.person'.rand().'@example.com',
+			),
+		),
+		'doc_link' => 'https://developer.bigcommerce.com/api/stores/v2/orders#create-order'
+	),
 	
 );
 		
