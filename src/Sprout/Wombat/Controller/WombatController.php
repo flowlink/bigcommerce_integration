@@ -592,6 +592,10 @@ class WombatController {
 		}
 	}
 
+	/**
+	 * Post a shipment to BigCommerce
+	 */
+
 	public function postShipmentAction(Request $request, Application $app) {
 		$request_data = $this->initRequestData($request);
 		
@@ -600,9 +604,9 @@ class WombatController {
 		$wombat_data = $request->request->get('shipment');
 		
 		$bcModel = new Shipment($wombat_data,'wombat');
-		$bcModel->loadAttachedResources($client);
+		$bcModel->prepareBCResources($client);
 		$bc_data = $bcModel->getBigCommerceObject('create');
-
+		//return print_r($bc_data,true);
 		
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -610,9 +614,9 @@ class WombatController {
 			//'debug'=>fopen('debug.txt', 'w')
 			);
 
-		//return $options['body'].PHP_EOL;
+		echo $options['body'].PHP_EOL;
 		
-		$response = $client->post("/api/v2/orders/$bc_data->order_id/shipments",$options);
+		$response = $client->post('orders/'.$wombat_data['order_id'].'/shipments',$options);
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
@@ -623,6 +627,42 @@ class WombatController {
 			$response = array(
 				'request_id' => $request_data['request_id'],
 				'summary' => "The shipment for order $bc_data->order_id was created in BigCommerce",
+				);
+			return $app->json($response,200);
+		}
+	}
+
+	/**
+	 * Update a shipment in BC
+	 */
+	public function putShipmentAction(Request $request, Application $app) {
+
+		$request_data = $this->initRequestData($request);
+
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('shipment');
+
+		$bcModel = new Shipment($wombat_data,'wombat');
+		$bc_data = $bcModel->getBigCommerceObject('update');
+
+		$options = array(
+			'headers'=>array('Content-Type'=>'application/json'),
+			'body' => (string)json_encode($bc_data),
+			//'debug'=>fopen('debug.txt', 'w')
+			);
+
+		$response = $client->put('orders/'.$wombat_data['order_id'].'/shipments/'.$wombat_data['id'],$options);
+		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
+		// make it not do that or catch an exception rather than checking code
+
+		if($response->getStatusCode() != 200) {
+			throw new Exception($request_data['request_id'].":Error received from BigCommerce ".$response->getBody(),500);
+		} else {
+			//return our success code & data
+			$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => "The shipment $bc_data->name was updated in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
@@ -722,9 +762,6 @@ class WombatController {
 	//add
 	
 	//update
-
-	public function putShipmentAction(Request $request, Application $app) {
-	}
 
 	//cancel
 	public function cancelOrderAction(Request $request, Application $app) {
