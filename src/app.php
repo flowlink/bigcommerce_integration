@@ -28,6 +28,18 @@ $wombat_auth = function (Request $request) use ($app){
 };
 
 /**
+ * Check that a request from Wombat includes non-empty parameters to connect to BC
+ */
+$wombat_includes_bc_auth = function(Request $request) {
+    $parameters = $request->request->get('parameters');
+    if( empty($parameters['api_username']) ||
+        empty($parameters['api_username']) ||
+        empty($parameters['api_username'])) {
+        throw new \Exception($request->request->get('request_id').':Missing authorization values', 500);
+    }
+};
+
+/**
  * Set up requests to automatically decode json if header present
  */
 $app->before(function (Request $request) {
