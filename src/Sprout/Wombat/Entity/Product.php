@@ -192,24 +192,18 @@ class Product {
 			availability
 			weight
 		*/
-		if($action != 'set_inventory') {
-			$bc_obj = (object) array(
-				//'id' => $wombat_obj->id,
-				'name' => $wombat_obj->name,
-				'price' => (String)number_format($wombat_obj->price,2,'.',''),
-				'description' => $wombat_obj->description,
-				'categories' => array(20),
-				'type' => 'physical',
-				'availability' => 'available',
-				'weight' => (string)1,
-			);
-		} else {
-			// @todo: Wombat has a separate Inventory object for this, while BigCommerce tracks it in the Product
-			// 				Consider whether we want a conditional treatment here, or a separate Inventory entity
-			$bc_obj = (object) array(
-				'inventory_level' => $wombat_obj->quantity,
-			);
-		}
+		
+		$bc_obj = (object) array(
+			//'id' => $wombat_obj->id,
+			'name' => $wombat_obj->name,
+			'price' => (String)number_format($wombat_obj->price,2,'.',''),
+			'description' => $wombat_obj->description,
+			'categories' => array(20),
+			'type' => 'physical',
+			'availability' => 'available',
+			'weight' => (string)1,
+		);
+		
 		
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
