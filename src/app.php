@@ -57,7 +57,7 @@ $app->error(function (\Exception $e, $code) use($app) {
 		if ($app['debug']) {
         return;
     }
-    $parts = explode(":", $e->getMessage());
+    $parts = explode(":::::", $e->getMessage());
 
     $response = array(
     	'request_id' => isset($parts[0]) ? $parts[0] : NULL,
