@@ -33,8 +33,8 @@ $wombat_auth = function (Request $request) use ($app){
 $wombat_includes_bc_auth = function(Request $request) {
     $parameters = $request->request->get('parameters');
     if( empty($parameters['api_username']) ||
-        empty($parameters['api_username']) ||
-        empty($parameters['api_username'])) {
+        empty($parameters['api_path']) ||
+        empty($parameters['api_token'])) {
         throw new \Exception($request->request->get('request_id').':Missing authorization values', 500);
     }
 };
