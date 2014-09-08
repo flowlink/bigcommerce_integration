@@ -12,29 +12,44 @@ $app->get('/uninstall', 'Sprout\Wombat\Controller\AppController::uninstallAction
 // Wombat webhooks
 
 //get
-$app->post('/get_products', 'Sprout\Wombat\Controller\WombatController::getProductsAction');
-$app->post('/get_orders', 'Sprout\Wombat\Controller\WombatController::getOrdersAction');
-$app->post('/get_shipments', 'Sprout\Wombat\Controller\WombatController::getShipmentsAction');
-$app->post('/get_shipment', 'Sprout\Wombat\Controller\WombatController::getShipmentAction');
-$app->post('/get_customers', 'Sprout\Wombat\Controller\WombatController::getCustomersAction');
+$app->post('/get_products', 'Sprout\Wombat\Controller\WombatController::getProductsAction')
+		->before($wombat_auth);
+$app->post('/get_orders', 'Sprout\Wombat\Controller\WombatController::getOrdersAction')
+		->before($wombat_auth);
+$app->post('/get_shipments', 'Sprout\Wombat\Controller\WombatController::getShipmentsAction')
+		->before($wombat_auth);
+$app->post('/get_shipment', 'Sprout\Wombat\Controller\WombatController::getShipmentAction')
+		->before($wombat_auth);
+$app->post('/get_customers', 'Sprout\Wombat\Controller\WombatController::getCustomersAction')
+		->before($wombat_auth);
 
 //add
-$app->post('/add_product', 'Sprout\Wombat\Controller\WombatController::postProductAction');
-$app->post('/add_order', 'Sprout\Wombat\Controller\WombatController::postOrderAction');
-$app->post('/add_shipment', 'Sprout\Wombat\Controller\WombatController::postShipmentAction');
-$app->post('/add_customer', 'Sprout\Wombat\Controller\WombatController::postCustomerAction');
+$app->post('/add_product', 'Sprout\Wombat\Controller\WombatController::postProductAction')
+		->before($wombat_auth);
+$app->post('/add_order', 'Sprout\Wombat\Controller\WombatController::postOrderAction')
+		->before($wombat_auth);
+$app->post('/add_shipment', 'Sprout\Wombat\Controller\WombatController::postShipmentAction')
+		->before($wombat_auth);
+$app->post('/add_customer', 'Sprout\Wombat\Controller\WombatController::postCustomerAction')
+		->before($wombat_auth);
 
 //update
-$app->post('/update_product', 'Sprout\Wombat\Controller\WombatController::putProductAction');
-$app->post('/update_order', 'Sprout\Wombat\Controller\WombatController::putOrderAction');
-$app->post('/update_shipment', 'Sprout\Wombat\Controller\WombatController::putShipmentAction');
-$app->post('/update_customer', 'Sprout\Wombat\Controller\WombatController::putCustomerAction');
+$app->post('/update_product', 'Sprout\Wombat\Controller\WombatController::putProductAction')
+		->before($wombat_auth);
+$app->post('/update_order', 'Sprout\Wombat\Controller\WombatController::putOrderAction')
+		->before($wombat_auth);
+$app->post('/update_shipment', 'Sprout\Wombat\Controller\WombatController::putShipmentAction')
+		->before($wombat_auth);
+$app->post('/update_customer', 'Sprout\Wombat\Controller\WombatController::putCustomerAction')
+		->before($wombat_auth);
 
 //cancel
-$app->post('/cancel_order', 'Sprout\Wombat\Controller\WombatController::cancelOrderAction');
+$app->post('/cancel_order', 'Sprout\Wombat\Controller\WombatController::cancelOrderAction')
+		->before($wombat_auth);
 
 //set
-$app->post('/set_inventory', 'Sprout\Wombat\Controller\WombatController::setInventoryAction');
+$app->post('/set_inventory', 'Sprout\Wombat\Controller\WombatController::setInventoryAction')
+		->before($wombat_auth);
 
 
 

@@ -644,6 +644,7 @@ class WombatController {
 		$wombat_data = $request->request->get('shipment');
 
 		$bcModel = new Shipment($wombat_data,'wombat');
+		$bcModel->prepareBCResources($client);
 		$bc_data = $bcModel->getBigCommerceObject('update');
 
 		$options = array(
@@ -713,20 +714,7 @@ class WombatController {
 		);
 		return $response;
 	}
-
-	/**
-	 * Check the request headers for proper authorization tokens from Wombat
-	 */
-	private function authorizeWombat(Request $request, Application $app) {
-		$wombat_store = $app['wombat_store'];
-		$wombat_token = $app['wombat_token'];
-
-		if($wombat_store != $request->headers->get('X-Hub-Store') ||
-			 $wombat_token != $request->headers->get('X-Hub-Token')) {
-			throw new \Exception('Unauthorized!', 401);
-		}
-	}
-
+	
 	private function legacyAPIClient($connection)
 	{
 		// legacy connection data

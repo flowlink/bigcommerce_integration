@@ -13,6 +13,21 @@ $app['user.persister'] = $app->share(function ($app) {
 });
 
 /**
+ * Check for Wombat's authorization headers
+ */
+$wombat_auth = function (Request $request) use ($app){
+
+    $wombat_store = $app['wombat_store'];
+    $wombat_token = $app['wombat_token'];
+    
+    if($wombat_store != $request->headers->get('X-Hub-Store') ||
+         $wombat_token != $request->headers->get('X-Hub-Token')) {
+        throw new \Exception('Unauthorized!', 401);
+    }
+    
+};
+
+/**
  * Set up requests to automatically decode json if header present
  */
 $app->before(function (Request $request) {
