@@ -212,7 +212,7 @@ class Product {
 		$sku = $this->data['wombat']['id'];
 		
 		try {
-			$response = $client->get('products',array('query'=>array('sku'=>$sku),'debug'=>fopen('debug.txt','w')));
+			$response = $client->get('products',array('query'=>array('sku'=>$sku)));
 			$data = $response->json(array('object'=>TRUE));
 
 			return $data[0]->id;
