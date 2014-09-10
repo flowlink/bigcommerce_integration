@@ -21,6 +21,7 @@ use Sprout\Wombat\Entity\Product;
 use Sprout\Wombat\Entity\Order;
 use Sprout\Wombat\Entity\Customer;
 use Sprout\Wombat\Entity\Shipment;
+use Sprout\Wombat\Entity\Inventory;
 
 class WombatController {
 
@@ -173,7 +174,7 @@ class WombatController {
 
 		$wombat_data = $request->request->get('inventory');
 
-		$bcModel = new Product($wombat_data,'wombat');
+		$bcModel = new Inventory($wombat_data,'wombat');
 		$bc_data = $bcModel->getBigCommerceObject('set_inventory');
 
 		$options = array(
@@ -361,7 +362,7 @@ class WombatController {
 				foreach($bc_data as $bc_customer) {
 					$bc_customer->_store_url = $request_data['store_url'];
 					$wombatModel = new Customer($bc_customer, 'bc');
-					//$wombatModel->loadAttachedResources($client);
+					$wombatModel->loadAttachedResources($client);
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
 			}
