@@ -437,6 +437,7 @@ class WombatController {
 		$wombat_data = $request->request->get('customer');
 
 		$bcModel = new Customer($wombat_data,'wombat');
+		$bc_id = $bcModel->getBCID($client,$request_data);
 		$bc_data = $bcModel->getBigCommerceObject('update');
 
 		//return print_r($bc_data,true);
@@ -448,7 +449,7 @@ class WombatController {
 			);
 
 		try {
-			$response = $client->put('customers/'.$wombat_data['id'],$options);
+			$response = $client->put('customers/'.$bc_id,$options);
 		} catch (RequestException $e) {
 			echo "ERROR ".$e->getMessage().PHP_EOL;
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
