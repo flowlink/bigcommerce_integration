@@ -26,7 +26,7 @@ class Product {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => empty($bc_obj->sku) ? $bc_obj->id : $bc_obj->sku,
+			'id' => empty($bc_obj->sku) ? $bc_obj->id : $bc_obj->sku, // we should use the SKU to ensure that products created outside of BC are still identifiable
 			'name' => $bc_obj->name,
 			'sku' => $bc_obj->sku,
 			'description' => $bc_obj->description,
@@ -194,7 +194,7 @@ class Product {
 		*/
 		
 		$bc_obj = (object) array(
-			//'id' => $wombat_obj->id,
+			'sku' => $wombat_obj->id, //store this so we can use it as a primary key in Wombat
 			'name' => $wombat_obj->name,
 			'price' => (String)number_format($wombat_obj->price,2,'.',''),
 			'description' => $wombat_obj->description,
@@ -204,11 +204,22 @@ class Product {
 			'weight' => (string)1,
 		);
 		
-		
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
 	
+	public function getBCID($client,$request_data) {
+		$sku = $this->data['wombat']['id'];
+		
+		try {
+			$response = $client->get('products',array('query'=>array('sku'=>$sku),'debug'=>fopen('debug.txt','w')));
+			$data = $response->json(array('object'=>TRUE));
+
+			return $data[0]->id;
+		} catch (Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+		}
+	}
 	
 	public function loadAttachedResources($client)
 	{
@@ -216,11 +227,17 @@ class Product {
 		foreach($this->_attached_resources as $resource_name) {
 			if(isset($this->data['bc']->$resource_name)) {
 				$resource = $this->data['bc']->$resource_name;
-			
+				
 				// don't load in resources with id 0 (they don't exist)
-				if(strpos($resource->url,'\/0.json') === FALSE) {				
+				if(strpos($resource->url,'/0.json') === FALSE) {				
 					// replace request shell with loaded resource
-					$response = $client->get($resource->url);
+					try {
+						$response = $client->get($resource->url);
+					} catch (Exception $e) {
+						//throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+						// @todo: find a way to insert the request_id here:
+						throw new \Exception("123:::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+					}
 					
 					if(intval($response->getStatusCode()) === 200)
 						$this->data['bc']->$resource_name = $response->json(array('object'=>TRUE));

@@ -132,8 +132,9 @@ class WombatController {
 		$wombat_data = $request->request->get('product');
 
 		$bcModel = new Product($wombat_data,'wombat');
+		$bc_id = $bcModel->getBCID($client,$request_data);
 		$bc_data = $bcModel->getBigCommerceObject('update');
-
+		//return print_r($bc_data,true).PHP_EOL;
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
 			'body' => (string)json_encode($bc_data),
@@ -141,7 +142,7 @@ class WombatController {
 			);
 
 		try {
-			$response = $client->put('products/'.$wombat_data['id'],$options);
+			$response = $client->put('products/'.$bc_id,$options);
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
