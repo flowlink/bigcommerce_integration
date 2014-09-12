@@ -92,7 +92,7 @@ class Customer {
 		$email = $this->data['wombat']['id'];
 		
 		try {
-			$response = $client->get('customers',array('query'=>array('email'=>$email),'debug'=>fopen('debug.txt','w')));
+			$response = $client->get('customers',array('query'=>array('email'=>$email)));
 			$data = $response->json(array('object'=>TRUE));
 			
 			return $data[0]->id;
