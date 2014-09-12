@@ -207,6 +207,91 @@ class Product {
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
+
+	/**
+	 * Send data to BigCommerce that's handled separately from the main product object:
+	 * custom fields, skus
+	 * NB: options can't be set directly on the product - it has to be done through the option set???
+	 */
+	public function pushAttachedResources($client,$request_data) {
+		$wombat_obj = (object) $this->data['wombat'];
+
+		//$bc_id = $this->getBCID($client,$request_data);
+		$bc_id = 78;
+		
+		//map Wombat properties onto BC custom fields
+		if(!empty($wombat_obj->properties)) {
+			
+			foreach($wombat_obj->properties as $name => $value) {
+				$data = (object) array(
+					'name' => $name, 
+					'text' => $value,
+				);
+				$client_options = array(
+					'headers'=>array('Content-Type'=>'application/json'),
+					'body' => (string)json_encode($data),
+						//'debug'=>fopen('debug.txt', 'w')
+				);
+				echo print_r($client_options,true).PHP_EOL;
+				// try {
+				// 	$client->post("products/$bc_id/custom_fields",$client_options);
+				// } catch (Exception $e) {
+				// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				// }
+			}
+
+		} 
+
+		//Map Wombat variants onto BC SKUs
+		if(!empty($wombat_obj->variants)) {
+			echo print_r($wombat_obj->variants,true).PHP_EOL;
+
+			foreach($wombat_obj->variants as $variant) {
+				$data = (object) array(
+					'sku' => 							$variant['sku'],
+					'cost_price' => 			$variant['cost_price'],
+					'inventory_level' =>	$variant['quantity'], // @todo: only if stock tracking for parent product is set to 'sku'
+					);
+
+				$sku_options = $this->getProductOptions($bc_id,$client,$request_data);
+
+				foreach($sku_options as $sku_option) {
+					$data['options'][] = (object) array(
+						'product_option_id' => 	$sku_option['product_option_id'],
+						'option_value_id' => 		$sku_option['option_value_id'],
+						);
+				}
+				echo print_r($data,true).PHP_EOL;
+				// try {
+				// 	$client->post("products/{product_id}/skus",$client_options);
+				// } catch (Exception $e) {
+				// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				// }
+			}
+		}
+
+	}
+
+	/**
+	 * Retrieve a product's options from BigCommerce and match it against provided Wombat variant options
+	 */
+	public function getProductOptions($product_id,$client,$request_data) {
+		try {
+			$response = $client->get("products/$product_id/options");
+		} catch (Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+		}
+		echo "RESPONSE".PHP_EOL.print_r($response->json(array('object'=>TRUE)),true).PHP_EOL;
+		$sku_options = array();
+		// if(!empty($this->data['wombat']['variants'])) {
+		// 	foreach ($this->data['wombat']['variants'] as $variant) {
+		// 		foreach ($variant['options'] as $name => $value) {
+
+		// 		}
+		// 	}
+		// }
+		return $sku_options;
+	}
 	
 	public function getBCID($client,$request_data) {
 		$sku = $this->data['wombat']['id'];
@@ -221,7 +306,7 @@ class Product {
 		}
 	}
 	
-	public function loadAttachedResources($client)
+	public function loadAttachedResources($client,$request_data)
 	{
 		// request attached resources		
 		foreach($this->_attached_resources as $resource_name) {
@@ -236,7 +321,7 @@ class Product {
 					} catch (Exception $e) {
 						//throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 						// @todo: find a way to insert the request_id here:
-						throw new \Exception("123:::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
 					}
 					
 					if(intval($response->getStatusCode()) === 200)
