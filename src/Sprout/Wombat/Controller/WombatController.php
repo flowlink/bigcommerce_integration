@@ -54,7 +54,7 @@ class WombatController {
 				foreach($bc_data as $bc_product) {
 					$bc_product->_store_url = $request_data['store_url'];
 					$wombatModel = new Product($bc_product, 'bc');
-					$wombatModel->loadAttachedResources($client);
+					$wombatModel->loadAttachedResources($client,$request_data);
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
 			}
@@ -92,7 +92,9 @@ class WombatController {
 		
 		$bcModel = new Product($wombat_data,'wombat');
 		$bc_data = $bcModel->getBigCommerceObject('create');
-
+		
+		// $bcModel->pushAttachedResources($client,$request_data);
+		// return print_r("HI",true);
 		
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -105,6 +107,8 @@ class WombatController {
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
+
+		// $bcModel->pushAttachedResources($client,$request_data);
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
@@ -288,7 +292,7 @@ class WombatController {
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
-				'summary' => "The order $bc_data->name was created in BigCommerce",
+				'summary' => "The order was created in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
