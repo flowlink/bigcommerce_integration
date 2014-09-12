@@ -49,7 +49,7 @@ class Product {
 			$wombat_obj->taxons[] = explode('/', 'Categories/' . $bc_cat);
 		}
 		
-		if(!empty($bc_obj->brand))
+		if(!empty($bc_obj->brand) && !empty($bc_obj->brand->name))
 			$wombat_obj->taxons[] = array('Brands', $bc_obj->brand->name);
 			
 		if(!empty($bc_obj->warranty))
