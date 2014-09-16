@@ -35,30 +35,47 @@ class Customer {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $bc_obj->email,
+			'id' => $bc_obj->id,
 			'firstname' => $bc_obj->first_name,
 			'lastname' => $bc_obj->last_name,
 			'email' => $bc_obj->email,
-			'shipping_address' => (object) array(
-				'address1' => '',
-				'address2' => '',
-				'zipcode' => '',
-				'city' => '',
-				'state' => '',
-				'country' => '',
-				'phone' => '',
-			),
-			'billing_address' => (object) array(
-				'address1' => '',
-				'address2' => '',
-				'zipcode' => '',
-				'city' => '',
-				'state' => '',
-				'country' => '',
-				'phone' => '',
-			),
 			'BCID' => $bc_obj->id,
 		);
+
+		if(!empty($bc_obj->_addresses)) {
+			$address = $bc_obj->_addresses[0];
+			$wombat_obj->billing_address = (object) array(
+				'firstname' => $address->first_name,
+				'lastname' 	=> $address->last_name,
+				'address1' 	=> $address->street_1,
+				'address2' 	=> $address->street_2,
+				'zipcode' 	=> $address->zip,
+				'city' 			=> $address->city,
+				'state' 		=> $address->state,
+				'country' 	=> $address->country_code,
+				'phone' 		=> $address->phone,
+				'BCID' 			=> $address->id,
+			);
+		}
+
+		if(!empty($bc_obj->_addresses) && count($bc_obj->_addresses) > 1) {
+			$address = $bc_obj->_addresses[1];
+			$wombat_obj->shipping_address = (object) array(
+				'firstname' => $address->first_name,
+				'lastname' 	=> $address->last_name,
+				'address1' 	=> $address->street_1,
+				'address2' 	=> $address->street_2,
+				'zipcode' 	=> $address->zip,
+				'city' 			=> $address->city,
+				'state' 		=> $address->state,
+				'country' 	=> $address->country_code,
+				'phone' 		=> $address->phone,
+				'BCID' 			=> $address->id,
+			);
+		}
+
+		echo print_r($wombat_obj);
+
 
 		$this->data['wombat'] = $wombat_obj;
 		return $wombat_obj;
@@ -117,7 +134,7 @@ class Customer {
 				$resource = $this->data['bc']->$resource_name;
 			
 				// don't load in resources with id 0 (they don't exist)
-				if(strpos($resource->url,'\/0.json') === FALSE) {				
+				if(strpos($resource->url,'/0.json') === FALSE) {				
 					// replace request shell with loaded resource
 					$response = $client->get($resource->url);
 					
@@ -134,17 +151,21 @@ class Customer {
 		
 		/*  _categories 	- (contains category paths)
 		*/
-		// if(!empty($this->data['bc']->addresses)) {
-		// 	$this->data['bc']->_categories = array();
-		// 	foreach($this->data['bc']->categories as $cat_id) {
-		// 		$category = $client->get( 'categories/'.$cat_id )->json(array('object'=>TRUE));
-		// 		$category_path = array();
-		// 		foreach($category->parent_category_list as $parent_cat_id) {
-		// 			$parent_category = $client->get( 'categories/'.$parent_cat_id )->json(array('object'=>TRUE));
-		// 			$category_path[] = $parent_category->name;
-		// 		}
-		// 		$this->data['bc']->_categories[] = implode('/',$category_path);
-		// 	}
-		// }
+		if(!empty($this->data['bc']->addresses)) {
+			$this->data['bc']->_addresses = array();
+
+			//if the customer has >2 address, take the last two, otherwise take whatever they have
+			if(count($this->data['bc']->addresses) > 2) {
+				$i = count($this->data['bc']->addresses)-2;
+			} else {
+				$i = 0;
+			}
+			
+			for($i; $i<count($this->data['bc']->addresses); $i++) {
+				$address = $this->data['bc']->addresses[$i];
+				$this->data['bc']->_addresses[] = $address;
+			}
+			
+		}
 	}
 }
