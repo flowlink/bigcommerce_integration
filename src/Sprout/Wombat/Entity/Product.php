@@ -41,7 +41,8 @@ class Product {
 			'options' => array(),
 			'properties' => (object) array(),
 			'images' => array(),
-			'variants' => array()
+			'variants' => array(),
+			'BCID' => $bc_obj->id,
 		);
 		
 		/*** TAXONS ***/

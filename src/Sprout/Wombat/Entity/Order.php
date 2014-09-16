@@ -86,7 +86,8 @@ class Order {
 				'phone' => ''
 
 			),
-			'payments' => array()
+			'payments' => array(),
+			'BCID' => $bc_obj->id,
 		);
 
 		/*** LINE_ITEMS ***/

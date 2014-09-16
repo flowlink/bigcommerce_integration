@@ -46,6 +46,7 @@ class Shipment {
 			'shipping_method' => $bc_obj->shipping_method,
 			'updated_at' => $bc_obj->date_created,
 			'shipped_at' => $bc_obj->date_created,
+			'BCID' => $bc_obj->id,
 			);
 
 		$this->data['wombat'] = $wombat_obj;
