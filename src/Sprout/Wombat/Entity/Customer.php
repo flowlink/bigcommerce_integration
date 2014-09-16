@@ -74,9 +74,6 @@ class Customer {
 			);
 		}
 
-		echo print_r($wombat_obj);
-
-
 		$this->data['wombat'] = $wombat_obj;
 		return $wombat_obj;
 	}
@@ -145,11 +142,10 @@ class Customer {
 				}
 			}
 		}
-		//echo print_r($this->data['bc'],true).PHP_EOL;
 
 		// organize extra resources (not really in API)
 		
-		/*  _categories 	- (contains category paths)
+		/*  _addresses
 		*/
 		if(!empty($this->data['bc']->addresses)) {
 			$this->data['bc']->_addresses = array();
