@@ -56,7 +56,8 @@ class Customer {
 				'state' => '',
 				'country' => '',
 				'phone' => '',
-			)
+			),
+			'BCID' => $bc_obj->id,
 		);
 
 		$this->data['wombat'] = $wombat_obj;
