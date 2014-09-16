@@ -311,6 +311,7 @@ class WombatController {
 
 		$bcModel = new Order($wombat_data,'wombat');
 		$bc_data = $bcModel->getBigCommerceObject('update');
+		$bc_id = $bcModel->getBCID();
 
 		//return print_r($bc_data,true);
 
@@ -321,7 +322,7 @@ class WombatController {
 			);
 
 		try {
-			$response = $client->put('orders/'.$wombat_data['id'],$options);
+			$response = $client->put("orders/$bc_id",$options);
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
@@ -453,7 +454,7 @@ class WombatController {
 			);
 
 		try {
-			$response = $client->put('customers/'.$bc_id,$options);
+			$response = $client->put("customers/$bc_id",$options);
 		} catch (RequestException $e) {
 			echo "ERROR ".$e->getMessage().PHP_EOL;
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
@@ -688,6 +689,7 @@ class WombatController {
 		$bcModel = new Shipment($wombat_data,'wombat');
 		$bcModel->prepareBCResources($client);
 		$bc_data = $bcModel->getBigCommerceObject('update');
+		$bc_id = $bcModel->getBCID();
 
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -696,7 +698,7 @@ class WombatController {
 			);
 
 		try {
-			$response = $client->put('orders/'.$wombat_data['order_id'].'/shipments/'.$wombat_data['id'],$options);
+			$response = $client->put("orders/$bc_id/shipments/".$wombat_data['id'],$options);
 		} catch (RequestException $e) {
 			echo "ERROR ".$e->getMessage().PHP_EOL;
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
