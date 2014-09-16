@@ -214,7 +214,7 @@ class Order {
 			return $this->data['wombat']['BCID'];
 		}
 
-		return '';
+		return $this->data['wombat']['id'];
 	}
 	
 	public function loadAttachedResources($client)

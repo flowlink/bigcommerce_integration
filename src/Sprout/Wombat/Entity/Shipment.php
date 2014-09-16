@@ -152,6 +152,6 @@ class Shipment {
 			return $this->data['wombat']['BCID'];
 		}
 
-		return '';
+		return $this->data['wombat']['id'];
 	}
 }
