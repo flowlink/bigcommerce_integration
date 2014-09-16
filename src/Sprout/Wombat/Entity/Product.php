@@ -295,6 +295,11 @@ class Product {
 	}
 	
 	public function getBCID($client,$request_data) {
+		if(!empty($this->data['wombat']['BCID'])) {
+			return $this->data['wombat']['BCID'];
+		}
+
+		//if no BCID stored, query BigCommerce for the SKU
 		$sku = $this->data['wombat']['id'];
 		
 		try {

@@ -90,6 +90,11 @@ class Customer {
 	 * Get the BigCommerce ID for a customer by fetching customers filtered by email address
 	 */
 	public function getBCID($client,$request_data) {
+		if(!empty($this->data['wombat']['BCID'])) {
+			return $this->data['wombat']['BCID'];
+		}
+
+		//if no BCID stored, query BC for the email
 		$email = $this->data['wombat']['email'];
 		
 		try {

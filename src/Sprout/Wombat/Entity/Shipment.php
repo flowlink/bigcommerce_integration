@@ -146,4 +146,12 @@ class Shipment {
 			}
 		}
 	}
+
+	public function getBCID() {
+		if(!empty($this->data['wombat']['BCID'])) {
+			return $this->data['wombat']['BCID'];
+		}
+
+		return '';
+	}
 }

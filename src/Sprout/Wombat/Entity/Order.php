@@ -229,6 +229,14 @@ class Order {
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
+
+	public function getBCID() {
+		if(!empty($this->data['wombat']['BCID'])) {
+			return $this->data['wombat']['BCID'];
+		}
+
+		return '';
+	}
 	
 	public function loadAttachedResources($client)
 	{
