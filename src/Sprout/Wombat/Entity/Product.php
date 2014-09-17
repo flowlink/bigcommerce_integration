@@ -7,8 +7,16 @@ class Product {
 	protected $data;
 	private $_attached_resources = array('images', 'brand', 'discount_rules', 'custom_fields', 'configurable_fields', 'skus', 'rules', 'option_set', 'options', 'downloads','videos','tax_class');
 
-	public function __construct($data, $type='bc') {
+	private $product_options; //cache the product options
+	private $option_sets; //cache option sets
+
+	private $client;
+	private $request_data;
+
+	public function __construct($data, $type='bc',$client,$request_data) {
 		$this->data[$type] = $data;
+		$this->client = $client;
+		$this->request_data = $request_data;
 	}
 
 	/**
@@ -204,7 +212,12 @@ class Product {
 			'availability' => 'available',
 			'weight' => (string)1,
 		);
-		
+
+		//if these are present, we'll need to find an option set
+		if(!empty($wombat_obj->variants) && !empty($wombat_obj->options)) {
+			$bc_obj->option_set_id = $this->getOptionSetId();
+		}
+		echo "OBJ: ".print_r($bc_obj,true).PHP_EOL;
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
@@ -217,8 +230,9 @@ class Product {
 	public function pushAttachedResources($client,$request_data) {
 		$wombat_obj = (object) $this->data['wombat'];
 
-		//$bc_id = $this->getBCID($client,$request_data);
-		$bc_id = 78;
+		$bc_id = $this->getBCID($client,$request_data);
+		//echo "PRODUCT ID: $bc_id".PHP_EOL;
+		//$bc_id = 147;
 		
 		//map Wombat properties onto BC custom fields
 		if(!empty($wombat_obj->properties)) {
@@ -233,7 +247,7 @@ class Product {
 					'body' => (string)json_encode($data),
 						//'debug'=>fopen('debug.txt', 'w')
 				);
-				echo print_r($client_options,true).PHP_EOL;
+				// echo print_r($client_options,true).PHP_EOL;
 				// try {
 				// 	$client->post("products/$bc_id/custom_fields",$client_options);
 				// } catch (Exception $e) {
@@ -241,7 +255,7 @@ class Product {
 				// }
 			}
 
-		} 
+		}
 
 		//Map Wombat variants onto BC SKUs
 		if(!empty($wombat_obj->variants)) {
@@ -254,43 +268,174 @@ class Product {
 					'inventory_level' =>	$variant['quantity'], // @todo: only if stock tracking for parent product is set to 'sku'
 					);
 
-				$sku_options = $this->getProductOptions($bc_id,$client,$request_data);
-
-				foreach($sku_options as $sku_option) {
-					$data['options'][] = (object) array(
-						'product_option_id' => 	$sku_option['product_option_id'],
-						'option_value_id' => 		$sku_option['option_value_id'],
-						);
-				}
+			
+				$data->options = $this->getSkuOptions($bc_id,$variant['options'],$client,$request_data);
 				echo print_r($data,true).PHP_EOL;
-				// try {
-				// 	$client->post("products/{product_id}/skus",$client_options);
-				// } catch (Exception $e) {
-				// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
-				// }
+
+				$client_options = array(
+					'headers'=>array('Content-Type'=>'application/json'),
+					'body' => (string)json_encode($data),
+						//'debug'=>fopen('debug.txt', 'w')
+				);
+				try {
+					$client->post("products/$bc_id/skus",$client_options);
+				} catch (Exception $e) {
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				}
 			}
 		}
 
 	}
 
 	/**
+	 * Match a set of Wombat options agains BC Option Sets
+	 */
+
+	public function getOptionSetId() {
+		$wombat_obj = (object) $this->data['wombat'];
+		$option_sets = $this->getOptionSets();
+		
+		$output = '';
+
+		//uppercase the Wombat options for matching
+		$options = array_map("strtoupper",$wombat_obj->options);
+		
+		//for each option set, construct an array of option names to match against the Wombat array
+		foreach ($option_sets as $option_set) {
+			$set_options = array();
+			foreach($option_set->options as $set_option)	{
+				$set_options[] = strtoupper($set_option->display_name);
+			}
+			if($set_options == $options) {
+				$output = $option_set->id;
+			}
+		}
+		
+		return $output;	
+	}
+
+	/**
+	 * Get option sets & their values from BigCommerce
+	 */
+	public function getOptionSets() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+
+		if(empty($this->option_sets)) {
+			//get the option sets from BigCommerce
+			try {
+				$response = $client->get("option_sets");
+			} catch (Exception $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+			}
+
+			$results = $response->json(array('object'=>TRUE));
+			//echo "RESPONSE".PHP_EOL.print_r($results,true).PHP_EOL;
+			foreach($results as $option_set) {
+				//$option_set->_processed = false;
+				$resource = substr($option_set->options->resource,1);
+
+				//retrieve the option set's options & add them to it
+				try {
+					$response = $client->get($resource);
+				} catch (Exception $e) {
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				}
+
+				$results = $response->json(array('object'=>TRUE));
+				//echo "RESPONSE".PHP_EOL.print_r($results,true).PHP_EOL;
+				$option_set->options = $results;
+				$this->option_sets[$option_set->id] = $option_set;
+			}
+		}
+		return $this->option_sets;
+	}
+
+	/**
 	 * Retrieve a product's options from BigCommerce and match it against provided Wombat variant options
 	 */
-	public function getProductOptions($product_id,$client,$request_data) {
-		try {
-			$response = $client->get("products/$product_id/options");
-		} catch (Exception $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
-		}
-		echo "RESPONSE".PHP_EOL.print_r($response->json(array('object'=>TRUE)),true).PHP_EOL;
-		$sku_options = array();
-		// if(!empty($this->data['wombat']['variants'])) {
-		// 	foreach ($this->data['wombat']['variants'] as $variant) {
-		// 		foreach ($variant['options'] as $name => $value) {
+	public function getSkuOptions($product_id,$variant_options,$client,$request_data) {
 
-		// 		}
-		// 	}
-		// }
+		//check whether we've already retrieved the product's options
+		if(empty($this->product_options)) {
+			try {
+				$response = $client->get("products/$product_id/options");
+			} catch (Exception $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+			}
+			echo "RESPONSE".PHP_EOL.print_r($response->json(array('object'=>TRUE)),true).PHP_EOL;
+			$product_options = $response->json(array('object'=>TRUE));
+			foreach($product_options as $option) {
+				$option->_processed = false;
+				$option->product_option_id = $option->id; //this will later get overridden by the option's ID when we merge with the expanded option
+				$this->product_options[$option->option_id] = $option;
+			}
+		} else {
+			$product_options = $this->product_options;
+		}
+
+
+		$sku_options = array();
+
+		foreach($product_options as $product_option) {
+
+			//If we haven't retrieved additional option info & values, do so
+			if(!$product_option->_processed) {
+
+				//Get additional option info from the main option object
+				try {
+					$response = $client->get("options/".$product_option->option_id);
+				} catch (Exception $e) {
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				}
+				$option = $response->json(array('object'=>TRUE));
+				$resource = substr($option->values->resource,1);
+				
+				echo "OPTION".PHP_EOL.print_r($option,true).PHP_EOL;
+
+				//get the option's values
+				try {
+					$response = $client->get($resource);
+				} catch (Exception $e) {
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				}
+
+				$values = $response->json(array('object'=>TRUE));
+
+				echo "VALUES".PHP_EOL.print_r($values,true).PHP_EOL;
+
+				$option->values = $values;
+
+				//merge addtional option info into the product_option
+				$product_option = (object) array_merge((array)$product_option,(array)$option);
+
+				//cache the additional data
+				$product_option->_processed = true;
+				$this->product_options[$product_option->option_id] = $product_option;
+			}
+
+			
+			echo "PRODUCT OPTION:".$product_option->option_id.PHP_EOL.print_r($product_option,true).PHP_EOL;
+
+			$sku_option = array();
+			//loop through the product options, match name
+			foreach($variant_options as $variant_opt_name => $variant_opt_value) {
+				if(strtoupper($variant_opt_name) == strtoupper($product_option->name)) {
+
+					$sku_option['product_option_id'] = $product_option->product_option_id;
+
+					//once found, loop through to match value
+					foreach($product_option->values as $opt_value) {
+
+						if(strtoupper($variant_opt_value) == strtoupper($opt_value->label)) {
+							$sku_option['option_value_id'] = $opt_value->id;
+						}
+					}
+				}
+			}
+			$sku_options[] = (object)$sku_option;
+		}
+		
 		return $sku_options;
 	}
 	
