@@ -90,11 +90,11 @@ class WombatController {
 
 		$wombat_data = $request->request->get('product');
 		
-		$bcModel = new Product($wombat_data,'wombat');
+		$bcModel = new Product($wombat_data,'wombat',$client,$request_data);
 		$bc_data = $bcModel->getBigCommerceObject('create');
 		
 		// $bcModel->pushAttachedResources($client,$request_data);
-		// return print_r("HI",true);
+		// return print_r("HI".PHP_EOL,true);
 		
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -108,7 +108,7 @@ class WombatController {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
 
-		// $bcModel->pushAttachedResources($client,$request_data);
+		$bcModel->pushAttachedResources($client,$request_data);
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
