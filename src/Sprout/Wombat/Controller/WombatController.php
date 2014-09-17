@@ -412,12 +412,15 @@ class WombatController {
 		
 		try {
 			$response = $client->post('customers',$options);
+
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
+
+		$bcModel->pushAttachedResources($client,$request_data);
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
-		
+
 		if($response->getStatusCode() != 201) {
 			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
 		} else {
