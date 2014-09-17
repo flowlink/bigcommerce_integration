@@ -233,6 +233,30 @@ class Product {
 		$bc_id = $this->getBCID($client,$request_data);
 		//echo "PRODUCT ID: $bc_id".PHP_EOL;
 		//$bc_id = 147;
+
+		//map Wombat images
+		if(!empty($wombat_obj->images)) {
+			foreach($wombat_obj->images as $image) {
+				echo print_r($image,true).PHP_EOL;
+				$data = (object) array(
+					'image_file' 		=> $image['url'],
+					'description' 	=> $image['title'],
+					'is_thumbnail' 	=> ($image['type'] == 'thumbnail')?'true':'false',
+					'sort_order'		=> $image['position'],
+					);
+				echo 'image: '.print_r($data,true).PHP_EOL;
+				$client_options = array(
+					'headers'=>array('Content-Type'=>'application/json'),
+					'body' => (string)json_encode($data),
+						//'debug'=>fopen('debug.txt', 'w')
+				);
+				try {
+					$client->post("products/$bc_id/images",$client_options);
+				} catch (Exception $e) {
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				}
+			}
+		}
 		
 		//map Wombat properties onto BC custom fields
 		if(!empty($wombat_obj->properties)) {
@@ -248,11 +272,11 @@ class Product {
 						//'debug'=>fopen('debug.txt', 'w')
 				);
 				// echo print_r($client_options,true).PHP_EOL;
-				// try {
-				// 	$client->post("products/$bc_id/custom_fields",$client_options);
-				// } catch (Exception $e) {
-				// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
-				// }
+				try {
+					$client->post("products/$bc_id/custom_fields",$client_options);
+				} catch (Exception $e) {
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				}
 			}
 
 		}
