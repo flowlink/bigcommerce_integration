@@ -41,7 +41,11 @@ class WombatController {
 		$request_data = $this->initRequestData($request);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
-		$response = $client->get('products', array('query' => $request_data['parameters']));
+		try {
+			$response = $client->get('products', array('query' => $request_data['parameters'],'debug'=>fopen('debug.txt','w')));
+		} catch (RequestException $e) {
+			throw new \Exception($request_data['request_id'].'::::: Error received from BigCommerce: '.$e->getResponse(),500);
+		}
 		$response_status = intval($response->getStatusCode());
 
 		// Response
@@ -74,7 +78,7 @@ class WombatController {
 			
 		} else { // error
 			
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce: '.$response->getBody(),500);
+			throw new \Exception($request_data['request_id'].'::::: Error received from BigCommerce: '.$response->getBody(),500);
 			
 		}
 	}
@@ -247,6 +251,7 @@ class WombatController {
 				'parameters' => $request_data['parameters'],
 				'orders' => $wombat_data
 			);
+			
 			return $app->json($response, 200);
 			
 		} else if($response_status === 204) { // successful but empty (no results)
