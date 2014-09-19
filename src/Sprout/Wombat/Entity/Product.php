@@ -34,23 +34,23 @@ class Product {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => empty($bc_obj->sku) ? $bc_obj->id : $bc_obj->sku, // we should use the SKU to ensure that products created outside of BC are still identifiable
-			'name' => $bc_obj->name,
-			'sku' => $bc_obj->sku,
-			'description' => $bc_obj->description,
-			'price' => (float) number_format($bc_obj->price, 2, '.', ''),
-			'cost_price' => (float) number_format($bc_obj->cost_price, 2, '.', ''),
-			'available_on' => $bc_obj->availability == 'preorder' ? $bc_obj->preorder_release_date : '',
-			'permalink' => $bc_obj->custom_url,
-			'meta_description' => $bc_obj->meta_description,
-			'meta_keywords' => $bc_obj->meta_keywords,
-			'shipping_category' => '',
-			'taxons' => array(),
-			'options' => array(),
-			'properties' => (object) array(),
-			'images' => array(),
-			'variants' => array(),
-			'bigcommerce_id' => $bc_obj->id,
+			'id' 								=> empty($bc_obj->sku) ? $bc_obj->id : $bc_obj->sku, // we should use the SKU to ensure that products created outside of BC are still identifiable
+			'name' 							=> $bc_obj->name,
+			'sku' 							=> $bc_obj->sku,
+			'description' 			=> $bc_obj->description,
+			'price' 						=> (float) number_format($bc_obj->price, 2, '.', ''),
+			'cost_price' 				=> (float) number_format($bc_obj->cost_price, 2, '.', ''),
+			'available_on' 			=> $bc_obj->availability == 'preorder' ? $bc_obj->preorder_release_date : '',
+			'permalink' 				=> $bc_obj->custom_url,
+			'meta_description' 	=> $bc_obj->meta_description,
+			'meta_keywords' 		=> $bc_obj->meta_keywords,
+			'shipping_category'	=> '',
+			'taxons' 						=> array(),
+			'options' 					=> array(),
+			'properties' 				=> (object) array(),
+			'images' 						=> array(),
+			'variants' 					=> array(),
+			'bigcommerce_id' 		=> $bc_obj->id,
 		);
 		
 		/*** TAXONS ***/
@@ -203,14 +203,17 @@ class Product {
 		*/
 		
 		$bc_obj = (object) array(
-			'sku' => $wombat_obj->id, //store this so we can use it as a primary key in Wombat
-			'name' => $wombat_obj->name,
-			'price' => (String)number_format($wombat_obj->price,2,'.',''),
-			'description' => $wombat_obj->description,
-			'categories' => $this->getCategories($wombat_obj->taxons),
-			'type' => 'physical',
-			'availability' => 'available',
-			'weight' => (string)1,
+			'sku' 							=> $wombat_obj->id, //store this so we can use it as a primary key in Wombat
+			'name' 							=> $wombat_obj->name,
+			'price' 						=> (String)number_format($wombat_obj->price,2,'.',''),
+			'description' 			=> $wombat_obj->description,
+			'categories' 				=> $this->getCategories($wombat_obj->taxons),
+			'type' 							=> 'physical',
+			'availability' 			=> 'available',
+			'weight' 						=> (string)1,
+			'custom_url' 				=> $wombat_obj->permalink,
+			'meta_description'	=> $wombat_obj->meta_description,
+			'meta_keywords'			=> $wombat_obj->meta_keywords,
 		);
 
 		//if these are present, we'll need to find an option set
