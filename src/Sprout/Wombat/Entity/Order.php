@@ -45,18 +45,7 @@ class Order {
 			),
 			'line_items' => array(),
 			'adjustments' => array(),
-			'shipping_address' => (object) array(
-				//'id' => $bc_obj->_shipping_address->id,
-				'firstname' => $bc_obj->_shipping_address->first_name,
-				'lastname' => $bc_obj->_shipping_address->last_name,
-				'address1' => $bc_obj->_shipping_address->street_1,
-				'address2' => $bc_obj->_shipping_address->street_2,
-				'zipcode' => $bc_obj->_shipping_address->zip,
-				'city' => $bc_obj->_shipping_address->city,
-				'state' => $bc_obj->_shipping_address->state,
-				'country' => $bc_obj->_shipping_address->country_iso2,
-				'phone' => $bc_obj->_shipping_address->phone,
-			),
+			
 			'billing_address' => (object) array(
 				//'id' => $bc_obj->_shipping_address->id,
 				'firstname' => $bc_obj->billing_address->first_name,
@@ -72,6 +61,21 @@ class Order {
 			'payments' => array(),
 			'bigcommerce_id' => $bc_obj->id,
 		);
+
+		if(!empty($bc_obj->_shipping_address)) {
+			$wombat_obj->shipping_address = (object) array(
+				//'id' => $bc_obj->_shipping_address->id,
+				'firstname' => $bc_obj->_shipping_address->first_name,
+				'lastname' => $bc_obj->_shipping_address->last_name,
+				'address1' => $bc_obj->_shipping_address->street_1,
+				'address2' => $bc_obj->_shipping_address->street_2,
+				'zipcode' => $bc_obj->_shipping_address->zip,
+				'city' => $bc_obj->_shipping_address->city,
+				'state' => $bc_obj->_shipping_address->state,
+				'country' => $bc_obj->_shipping_address->country_iso2,
+				'phone' => $bc_obj->_shipping_address->phone,
+			);
+		}
 
 		/*** LINE_ITEMS ***/
 		foreach($bc_obj->products as $bc_prod) {
