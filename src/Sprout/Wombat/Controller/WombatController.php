@@ -42,7 +42,7 @@ class WombatController {
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 		try {
-			$response = $client->get('products', array('query' => $request_data['parameters'],'debug'=>fopen('debug.txt','w')));
+			$response = $client->get('products', array('query' => $request_data['parameters']));
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].'::::: Error received from BigCommerce: '.$e->getResponse(),500);
 		}
@@ -750,6 +750,8 @@ class WombatController {
 			unset($parameters[$api_info]);
 		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 
+		$parameters = $this->transformParams($parameters,$request->getPathInfo());
+
 		$storehasher = $app['bc.storehash'];
 
 		return array(
@@ -759,6 +761,34 @@ class WombatController {
 			'store_url' => $store_url,
 			'hash' => $storehasher($store_url),
 			);
+	}
+
+	/**
+	 * Perform any alterations on parameters necessary before passing to BC
+	 */
+	private function transformParams($parameters,$context) {
+		
+		foreach ($parameters as $key => $value) {
+			switch ($key) {
+				case 'min_date_created':
+				case 'max_date_created':
+				case 'min_date_modified':
+				case 'max_date_modified':
+				case 'min_date_last_imported':
+				case 'max_date_last_imported':
+					//for products, transform any ISO formatted dates to RFC2822
+					if($context == '/get_products') {
+						$date = date(\DateTime::RFC2822,strtotime($value));
+						$parameters[$key] = $date;
+					}
+					break;
+				
+				default:
+					# code...
+					break;
+			}
+		}
+		return $parameters;
 	}
 
 	/**
