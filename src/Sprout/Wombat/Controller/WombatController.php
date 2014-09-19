@@ -58,7 +58,7 @@ class WombatController {
 				foreach($bc_data as $bc_product) {
 					$bc_product->_store_url = $request_data['store_url'];
 					$wombatModel = new Product($bc_product, 'bc',$client,$request_data);
-					$wombatModel->loadAttachedResources($client,$request_data);
+					$wombatModel->loadAttachedResources();
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
 			}
@@ -97,7 +97,7 @@ class WombatController {
 		$bcModel = new Product($wombat_data,'wombat',$client,$request_data);
 		$bc_data = $bcModel->getBigCommerceObject('create');
 		
-		// $bcModel->pushAttachedResources($client,$request_data);
+		// $bcModel->pushAttachedResources();
 		// return print_r("HI".PHP_EOL,true);
 		
 		$options = array(
@@ -112,7 +112,7 @@ class WombatController {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
 
-		$bcModel->pushAttachedResources($client,$request_data);
+		$bcModel->pushAttachedResources();
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
@@ -372,8 +372,8 @@ class WombatController {
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_customer) {
 					$bc_customer->_store_url = $request_data['store_url'];
-					$wombatModel = new Customer($bc_customer, 'bc');
-					$wombatModel->loadAttachedResources($client);
+					$wombatModel = new Customer($bc_customer, 'bc', $client, $request_data);
+					$wombatModel->loadAttachedResources();
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
 			}
@@ -403,7 +403,7 @@ class WombatController {
 
 		$wombat_data = $request->request->get('customer');
 		
-		$bcModel = new Customer($wombat_data,'wombat');
+		$bcModel = new Customer($wombat_data,'wombat',$client, $request_data);
 		$bc_data = $bcModel->getBigCommerceObject('create');
 
 		
@@ -422,7 +422,7 @@ class WombatController {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
 
-		$bcModel->pushAttachedResources($client,$request_data);
+		$bcModel->pushAttachedResources();
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
@@ -449,8 +449,8 @@ class WombatController {
 
 		$wombat_data = $request->request->get('customer');
 
-		$bcModel = new Customer($wombat_data,'wombat');
-		$bc_id = $bcModel->getBCID($client,$request_data);
+		$bcModel = new Customer($wombat_data,'wombat',$client, $request_data);
+		$bc_id = $bcModel->getBCID();
 		$bc_data = $bcModel->getBigCommerceObject('update');
 
 		//return print_r($bc_data,true);

@@ -6,8 +6,10 @@ class Customer {
 
 	protected $data;
 	private $_attached_resources = array('addresses');
-
-	public function __construct($data, $type='bc') {
+	private $client;
+	private $request_data;
+	
+	public function __construct($data, $type='bc',$client,$request_data) {
 		$this->data[$type] = $data;
 	}
 
@@ -103,7 +105,10 @@ class Customer {
 	/**
 	 * Get the BigCommerce ID for a customer by fetching customers filtered by email address
 	 */
-	public function getBCID($client,$request_data) {
+	public function getBCID() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+
 		if(!empty($this->data['wombat']['bigcommerce_id'])) {
 			return $this->data['wombat']['bigcommerce_id'];
 		}
@@ -124,7 +129,10 @@ class Customer {
 	/**
 	 * Load any attached resources from BigCommerce
 	 */
-	public function loadAttachedResources($client) {
+	public function loadAttachedResources() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+
 		// request attached resources		
 		foreach($this->_attached_resources as $resource_name) {
 			if(isset($this->data['bc']->$resource_name)) {
@@ -169,8 +177,9 @@ class Customer {
 	 * Send data to BigCommerce that's handled separately from the main customer object:
 	 * addresses
 	 */
-	public function pushAttachedResources($client,$request_data) {
-
+	public function pushAttachedResources() {
+		$client = $this->client;
+		$request_data = $this->request_data;
 		$wombat_obj = (object) $this->data['wombat'];
 
 		//get the customer ID via their email
