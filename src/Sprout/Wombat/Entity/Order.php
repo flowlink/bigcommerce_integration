@@ -217,8 +217,13 @@ class Order {
 		if(!empty($this->data['wombat']['bigcommerce_id'])) {
 			return $this->data['wombat']['bigcommerce_id'];
 		}
+		$hash = $this->request_data['hash'];
+		$id = $this->data['wombat']['id'];
 
-		return $this->data['wombat']['id'];
+		if(strlen($id) >= strlen($hash)) {
+			$id = str_replace($hash.'_', '', $id);
+		}
+		return $id;
 	}
 	
 	public function loadAttachedResources()
