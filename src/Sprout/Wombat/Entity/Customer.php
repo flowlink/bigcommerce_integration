@@ -99,7 +99,11 @@ class Customer {
 			'last_name' => $wombat_obj->lastname,
 			'email' => $wombat_obj->email,
 		);
-		
+		if(!empty($wombat_obj->billing_address['phone'])) {
+			$bc_obj->phone = $wombat_obj->billing_address['phone'];
+		}
+		echo print_r($wombat_obj,true).PHP_EOL;
+		echo print_r($bc_obj,true).PHP_EOL;
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
