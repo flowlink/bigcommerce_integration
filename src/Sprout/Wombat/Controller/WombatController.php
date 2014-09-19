@@ -57,7 +57,7 @@ class WombatController {
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_product) {
 					$bc_product->_store_url = $request_data['store_url'];
-					$wombatModel = new Product($bc_product, 'bc');
+					$wombatModel = new Product($bc_product, 'bc',$client,$request_data);
 					$wombatModel->loadAttachedResources($client,$request_data);
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
@@ -139,8 +139,8 @@ class WombatController {
 
 		$wombat_data = $request->request->get('product');
 
-		$bcModel = new Product($wombat_data,'wombat');
-		$bc_id = $bcModel->getBCID($client,$request_data);
+		$bcModel = new Product($wombat_data,'wombat',$client,$request_data);
+		$bc_id = $bcModel->getBCID();
 		$bc_data = $bcModel->getBigCommerceObject('update');
 		//return print_r($bc_data,true).PHP_EOL;
 		$options = array(
@@ -251,7 +251,7 @@ class WombatController {
 				'parameters' => $request_data['parameters'],
 				'orders' => $wombat_data
 			);
-			
+
 			return $app->json($response, 200);
 			
 		} else if($response_status === 204) { // successful but empty (no results)

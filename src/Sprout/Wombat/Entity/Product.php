@@ -235,10 +235,12 @@ class Product {
 	 * custom fields, skus
 	 * NB: options can't be set directly on the product - it has to be done through the option set???
 	 */
-	public function pushAttachedResources($client,$request_data) {
+	public function pushAttachedResources() {
+		$client = $this->client;
+		$request_data = $this->request_data;
 		$wombat_obj = (object) $this->data['wombat'];
 
-		$bc_id = $this->getBCID($client,$request_data);
+		$bc_id = $this->getBCID();
 		//echo "PRODUCT ID: $bc_id".PHP_EOL;
 		//$bc_id = 183;
 		//return print_r("STOPPING EARLY FOR TESTING",true);
@@ -303,7 +305,7 @@ class Product {
 					);
 
 			
-				$data->options = $this->getSkuOptions($bc_id,$variant['options'],$client,$request_data);
+				$data->options = $this->getSkuOptions($bc_id,$variant['options']);
 				// echo print_r($data,true).PHP_EOL;
 
 				$client_options = array(
@@ -504,7 +506,9 @@ class Product {
 	/**
 	 * Retrieve a product's options from BigCommerce and match it against provided Wombat variant options
 	 */
-	public function getSkuOptions($product_id,$variant_options,$client,$request_data) {
+	public function getSkuOptions($product_id,$variant_options) {
+		$client = $this->client;
+		$request_data = $this->request_data;
 
 		//check whether we've already retrieved the product's options
 		if(empty($this->product_options)) {
@@ -589,7 +593,10 @@ class Product {
 		return $sku_options;
 	}
 	
-	public function getBCID($client,$request_data) {
+	public function getBCID() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+
 		if(!empty($this->data['wombat']['bigcommerce_id'])) {
 			return $this->data['wombat']['bigcommerce_id'];
 		}
@@ -607,8 +614,10 @@ class Product {
 		}
 	}
 	
-	public function loadAttachedResources($client,$request_data)
-	{
+	public function loadAttachedResources() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+
 		// request attached resources		
 		foreach($this->_attached_resources as $resource_name) {
 			if(isset($this->data['bc']->$resource_name)) {
