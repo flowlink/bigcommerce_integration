@@ -238,8 +238,8 @@ class WombatController {
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_order) {
 					$bc_order->_store_url = $request_data['store_url'];
-					$wombatModel = new Order($bc_order, 'bc');
-					$wombatModel->loadAttachedResources($client);
+					$wombatModel = new Order($bc_order, 'bc', $client, $request_data);
+					$wombatModel->loadAttachedResources();
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
 			}
@@ -271,7 +271,7 @@ class WombatController {
 
 		$wombat_data = $request->request->get('order');
 		
-		$bcModel = new Order($wombat_data,'wombat');
+		$bcModel = new Order($wombat_data,'wombat', $client, $request_data);
 		$bc_data = $bcModel->getBigCommerceObject('create');
 
 		
@@ -314,7 +314,7 @@ class WombatController {
 
 		$wombat_data = $request->request->get('order');
 
-		$bcModel = new Order($wombat_data,'wombat');
+		$bcModel = new Order($wombat_data,'wombat', $client, $request_data);
 		$bc_data = $bcModel->getBigCommerceObject('update');
 		$bc_id = $bcModel->getBCID();
 

@@ -6,9 +6,13 @@ class Order {
 
 	protected $data;
 	private $_attached_resources = array('products','shipping_addresses','coupons');
+	private $client;
+	private $request_data;
 
-	public function __construct($data, $type='bc') {
+	public function __construct($data, $type='bc', $client, $request_data) {
 		$this->data[$type] = $data;
+		$this->client = $client;
+		$this->request_data = $request_data;
 	}
 
 	/**
@@ -217,8 +221,11 @@ class Order {
 		return $this->data['wombat']['id'];
 	}
 	
-	public function loadAttachedResources($client)
+	public function loadAttachedResources()
 	{
+		$client = $this->client;
+		$request_data = $this->request_data;
+		
 		// request attached resources		
 		foreach($this->_attached_resources as $resource_name) {
 			if(isset($this->data['bc']->$resource_name)) {
