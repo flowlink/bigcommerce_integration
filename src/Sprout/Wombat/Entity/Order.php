@@ -31,12 +31,12 @@ class Order {
 			'currency' => $bc_obj->currency_code,
 			'placed_on' => date('c',strtotime($bc_obj->date_created)),
 			'totals' => (object) array(
-				'item' => number_format($bc_obj->subtotal_ex_tax, 2, '.', ''),
+				'item' =>  (float) number_format($bc_obj->subtotal_ex_tax, 2, '.', ''),
 				'adjustment' => 0,
-				'tax' => number_format($bc_obj->total_tax, 2, '.', ''),
-				'shipping' => number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
-				'payment' => number_format($bc_obj->total_inc_tax, 2, '.', ''),
-				'order' => number_format($bc_obj->total_inc_tax, 2, '.', ''),
+				'tax' => (float) number_format($bc_obj->total_tax, 2, '.', ''),
+				'shipping' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
+				'payment' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
+				'order' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
 				
 			),
 			'line_items' => array(),
@@ -75,7 +75,7 @@ class Order {
 				'product_id' => empty($bc_prod->sku) ? $bc_obj->id : $bc_prod->sku,
 				'name' => $bc_prod->name,
 				'quantity' => $bc_prod->quantity,
-				'price' => number_format($bc_prod->price_ex_tax, 2, '.', '')
+				'price' => (float) number_format($bc_prod->price_ex_tax, 2, '.', '')
 			);
 			
 			// add chosen product options to line item
@@ -98,7 +98,7 @@ class Order {
 		if($bc_obj->total_tax > 0) { // TAX
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Tax',
-				'value' => number_format($bc_obj->total_tax, 2, '.', '')
+				'value' => (float) number_format($bc_obj->total_tax, 2, '.', '')
 			);
 			$wombat_obj->totals->adjustment += $bc_obj->total_tax;
 		}
@@ -106,7 +106,7 @@ class Order {
 		if($bc_obj->wrapping_cost_ex_tax > 0) { // GIFT WRAPPING
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Gift Wrapping',
-				'value' => number_format($bc_obj->wrapping_cost_ex_tax, 2, '.', '')
+				'value' => (float) number_format($bc_obj->wrapping_cost_ex_tax, 2, '.', '')
 			);
 			$wombat_obj->totals->adjustment += $bc_obj->wrapping_cost_ex_tax;
 		}
@@ -114,21 +114,21 @@ class Order {
 		if($bc_obj->shipping_cost_ex_tax > 0) { // SHIPPING
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Shipping',
-				'value' => number_format($bc_obj->shipping_cost_ex_tax, 2, '.', '')
+				'value' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', '')
 			);
 			$wombat_obj->totals->adjustment += $bc_obj->shipping_cost_ex_tax;
 		}
 		if($bc_obj->handling_cost_ex_tax > 0) { // HANDLING
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Handling',
-				'value' => number_format($bc_obj->handling_cost_ex_tax, 2, '.', '')
+				'value' => (float) number_format($bc_obj->handling_cost_ex_tax, 2, '.', '')
 			);
 			$wombat_obj->totals->adjustment += $bc_obj->handling_cost_ex_tax;
 		}
 		if($bc_obj->coupon_discount > 0) { // COUPONS
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Coupons',
-				'value' => number_format($bc_obj->coupon_discount * -1, 2, '.', '')
+				'value' => (float) number_format($bc_obj->coupon_discount * -1, 2, '.', '')
 			);
 			$wombat_obj->totals->adjustment += ($bc_obj->coupon_discount * -1);
 		}
@@ -137,7 +137,7 @@ class Order {
 		$wombat_obj->payments[] = (object) array(
 			'number' => $bc_obj->payment_provider_id,
 			'status' => $bc_obj->payment_status,
-			'amount' => number_format($bc_obj->total_inc_tax, 2, '.', ''),
+			'amount' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
 			'payment_method' => $bc_obj->payment_method
 		);
 

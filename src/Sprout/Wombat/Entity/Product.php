@@ -38,8 +38,8 @@ class Product {
 			'name' => $bc_obj->name,
 			'sku' => $bc_obj->sku,
 			'description' => $bc_obj->description,
-			'price' => number_format($bc_obj->price, 2, '.', ''),
-			'cost_price' => number_format($bc_obj->cost_price, 2, '.', ''),
+			'price' => (float) number_format($bc_obj->price, 2, '.', ''),
+			'cost_price' => (float) number_format($bc_obj->cost_price, 2, '.', ''),
 			'available_on' => $bc_obj->availability == 'preorder' ? $bc_obj->preorder_release_date : '',
 			'permalink' => $bc_obj->custom_url,
 			'meta_description' => $bc_obj->meta_description,
@@ -102,8 +102,8 @@ class Product {
 			foreach($bc_obj->skus as $bc_sku) {
 				$new_variant = (object) array(
 					'sku' => $bc_sku->sku,
-					'price' => number_format($bc_obj->price, 2, '.', ''),
-					'cost_price' => number_format($bc_sku->cost_price, 2, '.', ''),
+					'price' => (float) number_format($bc_obj->price, 2, '.', ''),
+					'cost_price' => (float) number_format($bc_sku->cost_price, 2, '.', ''),
 					'options' => (object) array(),
 					'quantity' => 1,
 					'images' => array()
@@ -146,10 +146,10 @@ class Product {
 							if(isset($bc_rule->price_adjuster->adjuster)) {
 								switch($bc_rule->price_adjuster->adjuster) {
 									case 'absolute':
-										$new_variant->price = number_format($bc_rule->price_adjuster->adjuster_value, 2, '.', '');
+										$new_variant->price = (float) number_format($bc_rule->price_adjuster->adjuster_value, 2, '.', '');
 										break;
 									case 'relative':
-										$new_variant->price += number_format($bc_rule->price_adjuster->adjuster_value, 2, '.', '');
+										$new_variant->price += (float) number_format($bc_rule->price_adjuster->adjuster_value, 2, '.', '');
 										break;
 									case 'percentage':
 										$new_variant->price += $new_variant->price * ($bc_rule->price_adjuster->adjuster_value/100);
