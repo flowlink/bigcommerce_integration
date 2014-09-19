@@ -46,7 +46,7 @@ class Shipment {
 			'shipping_method' => $bc_obj->shipping_method,
 			'updated_at' => $bc_obj->date_created,
 			'shipped_at' => $bc_obj->date_created,
-			'BCID' => $bc_obj->id,
+			'bigcommerce_id' => $bc_obj->id,
 			);
 
 		$this->data['wombat'] = $wombat_obj;
@@ -148,8 +148,8 @@ class Shipment {
 	}
 
 	public function getBCID() {
-		if(!empty($this->data['wombat']['BCID'])) {
-			return $this->data['wombat']['BCID'];
+		if(!empty($this->data['wombat']['bigcommerce_id'])) {
+			return $this->data['wombat']['bigcommerce_id'];
 		}
 
 		return $this->data['wombat']['id'];

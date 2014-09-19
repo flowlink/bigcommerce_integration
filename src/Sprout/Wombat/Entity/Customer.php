@@ -39,7 +39,7 @@ class Customer {
 			'firstname' => $bc_obj->first_name,
 			'lastname' => $bc_obj->last_name,
 			'email' => $bc_obj->email,
-			'BCID' => $bc_obj->id,
+			'bigcommerce_id' => $bc_obj->id,
 		);
 
 		if(!empty($bc_obj->_addresses)) {
@@ -54,7 +54,7 @@ class Customer {
 				'state' 		=> $address->state,
 				'country' 	=> $address->country_iso2,
 				'phone' 		=> $address->phone,
-				'BCID' 			=> $address->id,
+				'bigcommerce_id' 			=> $address->id,
 			);
 		}
 
@@ -70,7 +70,7 @@ class Customer {
 				'state' 		=> $address->state,
 				'country' 	=> $address->country_iso2,
 				'phone' 		=> $address->phone,
-				'BCID' 			=> $address->id,
+				'bigcommerce_id' 			=> $address->id,
 			);
 		}
 
@@ -104,8 +104,8 @@ class Customer {
 	 * Get the BigCommerce ID for a customer by fetching customers filtered by email address
 	 */
 	public function getBCID($client,$request_data) {
-		if(!empty($this->data['wombat']['BCID'])) {
-			return $this->data['wombat']['BCID'];
+		if(!empty($this->data['wombat']['bigcommerce_id'])) {
+			return $this->data['wombat']['bigcommerce_id'];
 		}
 
 		//if no BCID stored, query BC for the email

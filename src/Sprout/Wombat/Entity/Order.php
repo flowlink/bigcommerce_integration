@@ -66,7 +66,7 @@ class Order {
 				'phone' => $bc_obj->billing_address->phone,
 			),
 			'payments' => array(),
-			'BCID' => $bc_obj->id,
+			'bigcommerce_id' => $bc_obj->id,
 		);
 
 		/*** LINE_ITEMS ***/
@@ -210,8 +210,8 @@ class Order {
 	}
 
 	public function getBCID() {
-		if(!empty($this->data['wombat']['BCID'])) {
-			return $this->data['wombat']['BCID'];
+		if(!empty($this->data['wombat']['bigcommerce_id'])) {
+			return $this->data['wombat']['bigcommerce_id'];
 		}
 
 		return $this->data['wombat']['id'];

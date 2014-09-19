@@ -25,7 +25,7 @@ class Inventory {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'BCID' => $bc_obj->id,
+			'bigcommerce_id' => $bc_obj->id,
 		);
 
 		$this->data['wombat'] = $wombat_obj;
