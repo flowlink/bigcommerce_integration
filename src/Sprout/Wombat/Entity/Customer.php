@@ -186,7 +186,7 @@ class Customer {
 	 * Send data to BigCommerce that's handled separately from the main customer object:
 	 * addresses
 	 */
-	public function pushAttachedResources() {
+	public function pushAttachedResources($action = 'create') {
 		$client = $this->client;
 		$request_data = $this->request_data;
 		$wombat_obj = (object) $this->data['wombat'];
@@ -217,10 +217,17 @@ class Customer {
 			$options['body'] = (string)json_encode($billing_address);
 			//echo print_r($options['body'],true).PHP_EOL;
 			try {
-				$client->post($path,$options);
+				if($action == 'create') {
+					$client->post($path,$options);
+				} else if($action == 'update') {
+					$address_id = $wombat_obj->billing_address['bigcommerce_id'];
+					$path = "customers/$id/addresses/$address_id";
+
+					$client->put($path,$options);
+				}
 			}
 			catch(\Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while adding customer address: ".$e->getMessage(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address: ".$e->getResponse(),500);
 			}
 		}
 
@@ -244,10 +251,17 @@ class Customer {
 			$options['body'] = (string)json_encode($shipping_address);
 			//echo print_r($options['body'],true).PHP_EOL;
 			try {
-				$client->post($path,$options);
+				if($action == 'create') {
+					$client->post($path,$options);
+				} else if($action == 'update') {
+					$address_id = $wombat_obj->shipping_address['bigcommerce_id'];
+					$path = "customers/$id/addresses/$address_id";
+					
+					$client->put($path,$options);
+				}
 			}
 			catch(\Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while adding customer address: ".$e->getMessage(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address: ".$e->getResponse(),500);
 			}
 		}
 		
