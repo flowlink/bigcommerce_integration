@@ -8,9 +8,11 @@ class Customer {
 	private $_attached_resources = array('addresses');
 	private $client;
 	private $request_data;
-	
+
 	public function __construct($data, $type='bc',$client,$request_data) {
 		$this->data[$type] = $data;
+		$this->client = $client;
+		$this->request_data = $request_data;
 	}
 
 

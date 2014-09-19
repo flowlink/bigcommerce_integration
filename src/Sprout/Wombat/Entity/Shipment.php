@@ -5,9 +5,13 @@ namespace Sprout\Wombat\Entity;
 class Shipment {
 
 	protected $data;
+	private $client;
+	private $request_data;
 
-	public function __construct($data, $type='bc') {
+	public function __construct($data, $type='bc',$client,$request_data) {
 		$this->data[$type] = $data;
+		$this->client = $client;
+		$this->request_data = $request_data;
 	}
 
 
@@ -89,7 +93,9 @@ class Shipment {
 		return $bc_obj;
 	}
 
-	public function prepareBCResources($client) {
+	public function prepareBCResources() {
+		$client = $this->client;
+		$request_data = $this->request_data;
 
 		//retrieve shipping addresses already associated with the order_id
 		$wombat_obj = (object)$this->data['wombat'];
