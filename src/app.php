@@ -13,6 +13,17 @@ $app['user.persister'] = $app->share(function ($app) {
 });
 
 /**
+ * Get a BC store hash from a store URL
+ */
+$app['bc.storehash'] = $app->protect(function ($store_url) {
+    
+    $parts = explode('.', str_replace('https://', '', $store_url));
+    $hash = str_replace('store-','',$parts[0]);
+
+    return $hash;
+});
+
+/**
  * Check for Wombat's authorization headers
  */
 $wombat_auth = function (Request $request) use ($app){

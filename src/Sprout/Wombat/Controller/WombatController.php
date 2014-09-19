@@ -38,7 +38,7 @@ class WombatController {
 	 */
 	public function getProductsAction(Request $request, Application $app) {
 		
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 		try {
@@ -88,7 +88,7 @@ class WombatController {
 	 */
 	public function postProductAction(Request $request, Application $app) {
 		
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -133,7 +133,7 @@ class WombatController {
 	 */
 	public function putProductAction(Request $request, Application $app) {
 
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -177,7 +177,7 @@ class WombatController {
 	 * @todo: check that the product has inventory_tracking set in BC before attempting to update
 	 */
 	public function setInventoryAction(Request $request, Application $app) {
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -223,7 +223,7 @@ class WombatController {
 	 */
 	public function getOrdersAction(Request $request, Application $app) {
 		
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 		$response = $client->get('orders', array('query' => $request_data['parameters']));
@@ -265,7 +265,7 @@ class WombatController {
 
 	public function postOrderAction(Request $request, Application $app) {
 
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -308,7 +308,7 @@ class WombatController {
 	 */
 	public function putOrderAction(Request $request, Application $app) {
 
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -357,7 +357,7 @@ class WombatController {
 	 */
 	public function getCustomersAction(Request $request, Application $app) {
 
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 		$response = $client->get('customers', array('query' => $request_data['parameters']));
@@ -397,7 +397,7 @@ class WombatController {
 	}
 
 	public function postCustomerAction(Request $request, Application $app) {
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -443,7 +443,7 @@ class WombatController {
 	 */
 	public function putCustomerAction(Request $request, Application $app) {
 
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -495,7 +495,7 @@ class WombatController {
 	 */
 	public function getShipmentsAction(Request $request, Application $app) {
 		
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -595,7 +595,7 @@ class WombatController {
 	 */
 	public function getShipmentAction(Request $request, Application $app) {
 		
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		$order_id = 		$request->request->get('order_id');
 		$shipment_id = 	$request->request->get('shipment_id');
 
@@ -643,7 +643,7 @@ class WombatController {
 	 */
 
 	public function postShipmentAction(Request $request, Application $app) {
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -688,7 +688,7 @@ class WombatController {
 	 */
 	public function putShipmentAction(Request $request, Application $app) {
 
-		$request_data = $this->initRequestData($request);
+		$request_data = $this->initRequestData($request,$app);
 
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
@@ -735,7 +735,7 @@ class WombatController {
 	/**
 	 * Perform common initialization tasks for actions
 	 */
-	private function initRequestData(Request $request) {
+	private function initRequestData(Request $request, $app) {
 		// Input
 		$request_id = $request->request->get('request_id');
 		$parameters = $request->request->get('parameters');
@@ -750,11 +750,14 @@ class WombatController {
 			unset($parameters[$api_info]);
 		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 
+		$storehasher = $app['bc.storehash'];
+
 		return array(
 			'request_id' => $request_id,
 			'parameters' => $parameters,
 			'legacy_api_info' => $legacy_api_info,
 			'store_url' => $store_url,
+			'hash' => $storehasher($store_url),
 			);
 	}
 

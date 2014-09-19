@@ -255,10 +255,7 @@ class Order {
 	}
 
 	public function getHashId($id) {
-		$request_data = $this->request_data;
-
-		$parts = explode('.', str_replace('https://', '', $request_data['store_url']));
-		$hash = str_replace('store-','',$parts[0]);
+		$hash = $this->request_data['hash'];
 		
 		return $hash.'_'.$id;
 	}
