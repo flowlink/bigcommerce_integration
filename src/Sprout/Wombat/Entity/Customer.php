@@ -115,17 +115,24 @@ class Customer {
 			return $this->data['wombat']['bigcommerce_id'];
 		}
 
-		//if no BCID stored, query BC for the email
-		$email = $this->data['wombat']['email'];
+		// //if no BCID stored, query BC for the email
+		// $email = $this->data['wombat']['email'];
 		
-		try {
-			$response = $client->get('customers',array('query'=>array('email'=>$email)));
-			$data = $response->json(array('object'=>TRUE));
+		// try {
+		// 	$response = $client->get('customers',array('query'=>array('email'=>$email)));
+		// 	$data = $response->json(array('object'=>TRUE));
 			
-			return $data[0]->id;
-		} catch (Exception $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+		// 	return $data[0]->id;
+		// } catch (Exception $e) {
+		// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+		// }
+		$hash = $this->request_data['hash'];
+		$id = $this->data['wombat']['id'];
+
+		if(strlen($id) >= strlen($hash)) {
+			$id = str_replace($hash.'_', '', $id);
 		}
+		return $id;
 	}
 
 	/**
