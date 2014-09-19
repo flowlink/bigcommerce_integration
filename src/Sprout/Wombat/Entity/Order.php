@@ -28,7 +28,7 @@ class Order {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $bc_obj->id,
+			'id' => $this->getHashId($bc_obj->id),
 			'status' => strtolower($bc_obj->status),
 			'channel' => is_null($bc_obj->external_source) ? $bc_obj->order_source : $bc_obj->external_source,
 			'email' => $bc_obj->billing_address->email,
@@ -225,7 +225,7 @@ class Order {
 	{
 		$client = $this->client;
 		$request_data = $this->request_data;
-		
+
 		// request attached resources		
 		foreach($this->_attached_resources as $resource_name) {
 			if(isset($this->data['bc']->$resource_name)) {
@@ -252,5 +252,14 @@ class Order {
 			$this->data['bc']->_shipping_address = $this->data['bc']->shipping_addresses[0];
 		}
 
+	}
+
+	public function getHashId($id) {
+		$request_data = $this->request_data;
+
+		$parts = explode('.', str_replace('https://', '', $request_data['store_url']));
+		$hash = str_replace('store-','',$parts[0]);
+		
+		return $hash.'_'.$id;
 	}
 }

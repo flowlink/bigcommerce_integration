@@ -44,7 +44,7 @@ class Shipment {
 
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $bc_obj->id,
+			'id' => $this->getHashId($bc_obj->id),
 			'order_id' => $bc_obj->order_id,
 			'email' => !empty($bc_obj->shipping_address->email)?$bc_obj->shipping_address->email:$bc_obj->billing_address->email, // @todo: maybe just one of these, or get from customer profile
 			'shipping_method' => $bc_obj->shipping_method,
@@ -159,5 +159,13 @@ class Shipment {
 		}
 
 		return $this->data['wombat']['id'];
+	}
+	public function getHashId($id) {
+		$request_data = $this->request_data;
+
+		$parts = explode('.', str_replace('https://', '', $request_data['store_url']));
+		$hash = str_replace('store-','',$parts[0]);
+		
+		return $hash.'_'.$id;
 	}
 }

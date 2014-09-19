@@ -39,7 +39,7 @@ class Customer {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $bc_obj->id,
+			'id' => $this->getHashId($bc_obj->id),
 			'firstname' => $bc_obj->first_name,
 			'lastname' => $bc_obj->last_name,
 			'email' => $bc_obj->email,
@@ -504,5 +504,13 @@ class Customer {
 			$output = $countries[$iso];
 		}
 		return $output;
+	}
+	public function getHashId($id) {
+		$request_data = $this->request_data;
+
+		$parts = explode('.', str_replace('https://', '', $request_data['store_url']));
+		$hash = str_replace('store-','',$parts[0]);
+		
+		return $hash.'_'.$id;
 	}
 }
