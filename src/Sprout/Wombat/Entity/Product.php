@@ -549,8 +549,10 @@ class Product {
 		//for each option set, construct an array of option names to match against the Wombat array
 		foreach ($option_sets as $option_set) {
 			$set_options = array();
-			foreach($option_set->options as $set_option)	{
-				$set_options[] = strtoupper($set_option->display_name);
+			if(!empty($option_set->options)) {
+				foreach($option_set->options as $set_option)	{
+					$set_options[] = strtoupper($set_option->display_name);
+				}
 			}
 			if($set_options == $options) {
 				$output = $option_set->id;
