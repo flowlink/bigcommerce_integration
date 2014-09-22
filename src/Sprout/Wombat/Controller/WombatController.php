@@ -98,7 +98,7 @@ class WombatController {
 		$bc_data = $bcModel->getBigCommerceObject('create');
 		
 		// $bcModel->pushAttachedResources();
-		//return print_r("HI".PHP_EOL,true);
+		// return print_r("HI".PHP_EOL,true);
 		
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),

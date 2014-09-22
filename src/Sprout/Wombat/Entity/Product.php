@@ -251,7 +251,7 @@ class Product {
 			foreach($wombat_obj->images as &$image) {
 				// echo print_r($image,true).PHP_EOL;
 				$data = (object) array(
-					'image_file' 		=> $image['url'],
+					'image_file' 		=> $this->processImageURL($image['url']),
 					'description' 	=> $image['title'],
 					'is_thumbnail' 	=> ($image['type'] == 'thumbnail')?'true':'false',
 					'sort_order'		=> $image['position'],
@@ -372,7 +372,7 @@ class Product {
 				}
 
 				if(!empty($variant['images'])) {
-					$rule->image_file = $variant['images'][0]['url'];
+					$rule->image_file = $this->processImageURL($variant['images'][0]['url']);
 				}
 				// echo "RULE: ".print_r($rule,true).PHP_EOL;
 				$client_options = array(
@@ -396,6 +396,7 @@ class Product {
 
 			}
 		}
+		
 		$this->data['wombat'] = $wombat_obj;
 	}
 
@@ -801,6 +802,14 @@ class Product {
 			$permalink .= '/';
 		}
 		return $permalink;
+	}
+
+	/**
+	 * Strip any query variables off of image URLs
+	 */
+	private function processImageURL($url) {
+		$parts = preg_split('/&|\?/',$url);
+		return $parts[0];
 	}
 	
 }
