@@ -8,8 +8,12 @@ $app['callback_url']		= "http://walrusk.net/oauth";
 $app['bc_api_base'] 		= "https://api.bigcommerce.com";
 
 //Wombat authentication tokens
-$app['wombat_store']		= "53cffa32776f6d6e34740000";
-$app['wombat_token']		= "db4ebe193caad7c75589bc9a865a4d6925dad15f50e4ca69";
+$app['wombat_api_base'] = "https://push.wombat.co";
+$app['wombat_tokens'] 	= array(
+	'53cffa32776f6d6e34740000' => 'db4ebe193caad7c75589bc9a865a4d6925dad15f50e4ca69', //rodeck demo store
+	);
+// $app['wombat_store']		= "53cffa32776f6d6e34740000";
+// $app['wombat_token']		= "db4ebe193caad7c75589bc9a865a4d6925dad15f50e4ca69";
 
 //For the basic file-based user persistence, set a local directory to save in
 $app['user.persist_path'] = '/tmp/sprout';

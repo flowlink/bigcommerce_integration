@@ -225,7 +225,7 @@ class Product {
 		if($brand_id) {
 			$bc_obj->brand_id = $brand_id;
 		}
-		 echo "OBJ: ".print_r($bc_obj,true).PHP_EOL;
+		 // echo "OBJ: ".print_r($bc_obj,true).PHP_EOL;
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
@@ -373,23 +373,23 @@ class Product {
 
 		foreach($taxons as $taxon) {
 			if(strtoupper($taxon[0]) == 'CATEGORIES') {
-				echo print_r($taxon,true).PHP_EOL;
+				// echo print_r($taxon,true).PHP_EOL;
 				$categoryname = $taxon[count($taxon)-1];
-				echo $categoryname.PHP_EOL;
+				// echo $categoryname.PHP_EOL;
 
 				try {
 						$response = $client->get("categories",array('query'=>array('name'=>$categoryname)));
 					} catch (Exception $e) {
 						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
 					}
-					echo $response->getStatusCode().PHP_EOL;
+					// echo $response->getStatusCode().PHP_EOL;
 					if($response->getStatusCode() == 204) {
 						//create category?
 					} else if($response->getStatusCode() == 200) {
 						$categories = $response->json(array('object'=>TRUE));
 						$category = $categories[0];
 						$category_ids[] = $category->id;
-						echo "categories: ".print_r($categories,true).PHP_EOL;
+						// echo "categories: ".print_r($categories,true).PHP_EOL;
 					}
 			}
 		}

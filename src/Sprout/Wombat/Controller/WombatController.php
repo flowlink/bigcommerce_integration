@@ -98,7 +98,7 @@ class WombatController {
 		$bc_data = $bcModel->getBigCommerceObject('create');
 		
 		// $bcModel->pushAttachedResources();
-		// return print_r("HI".PHP_EOL,true);
+		//return print_r("HI".PHP_EOL,true);
 		
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -111,6 +111,10 @@ class WombatController {
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
+
+		// if($wombat_request = $this->initWombatData($request,$app)) {
+			
+		// }
 
 		$bcModel->pushAttachedResources();
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
@@ -741,7 +745,7 @@ class WombatController {
 		// Input
 		$request_id = $request->request->get('request_id');
 		$parameters = $request->request->get('parameters');
-
+		
 		// Legacy API connection
 		$legacy_api_info = array(
 			'username' => urldecode($parameters['api_username']),
@@ -757,12 +761,29 @@ class WombatController {
 		$storehasher = $app['bc.storehash'];
 
 		return array(
-			'request_id' => $request_id,
-			'parameters' => $parameters,
-			'legacy_api_info' => $legacy_api_info,
-			'store_url' => $store_url,
-			'hash' => $storehasher($store_url),
+			'request_id'			=> $request_id,
+			'parameters'			=> $parameters,
+			'legacy_api_info'	=> $legacy_api_info,
+			'store_url'				=> $store_url,
+			'hash'						=> $storehasher($store_url),
+			'wombat_headers'	=> $wombat_headers,
 			);
+	}
+
+	private function initWombatData(Request $request, $app) {
+
+		$access_token = $app['wombat.token']->getToken($request->headers->get('X-Hub-Store'));
+		if($access_token) {
+			$wombat_headers = array(
+				'store'		=> $request->headers->get('X-Hub-Store'),
+				'token'		=> $request->headers->get('X-Hub-Token'),
+				'access'	=> $access_token,
+				);
+		} else {
+			return false;
+		}
+
+		return $wombat_headers;
 	}
 
 	/**
@@ -807,6 +828,28 @@ class WombatController {
 		return $response;
 	}
 
+	/**
+	 * Client to send data back to Wombat
+	 */
+	private function wombatClient($connection) {
+		$wombat_headers = $connection['wombat_headers'];
+
+		$client = new Client(array(
+			'defaults' => array(
+				'headers' => array(
+					'X-Hub-Store' 				=> $connection['store'],
+					'X-Hub-Access-Token'	=> $connection['access'],
+					),
+				),
+			));
+
+		return $client;
+	}
+
+
+	/**
+	 * Client for the BigCommerce legacy (non-oAuth) API
+	 */
 	private function legacyAPIClient($connection)
 	{
 		// legacy connection data

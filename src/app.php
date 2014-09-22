@@ -13,6 +13,25 @@ $app['user.persister'] = $app->share(function ($app) {
 });
 
 /**
+* Get an access token for a given wombat store
+*/
+class WombatToken
+{
+    private $tokens; 
+
+    function __construct($tokens) {
+        $this->tokens = $tokens;
+    }
+    function getToken($store) {
+        return $this->tokens[$store];
+    }
+}
+
+$app['wombat.token'] = function ($app) {
+    return new WombatToken($app['wombat_tokens']);
+};
+
+/**
  * Get a BC store hash from a store URL
  */
 $app['bc.storehash'] = $app->protect(function ($store_url) {
