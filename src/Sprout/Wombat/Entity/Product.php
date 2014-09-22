@@ -441,13 +441,13 @@ class Product {
 		$update_data = (object) array(
 			'products' => array($product),
 			);
-		echo print_r($update_data).PHP_EOL;
+		// echo print_r($update_data).PHP_EOL;
 
 		try{
 			$client_options = array(
 				'headers'=>array('Content-Type'=>'application/json'),
 				'body' => (string)json_encode($update_data),
-				'debug' => fopen('debug.txt','w'),
+				//'debug' => fopen('debug.txt','w'),
 				);
 			$client->post('',$client_options);
 		}
