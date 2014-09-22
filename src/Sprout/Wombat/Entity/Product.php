@@ -76,17 +76,21 @@ class Product {
 					'dimensions' => (object) array(
 						'height' => '',
 						'width' => ''
-					)
+					),
+					'bigcommerce_id' => $bc_img->id,
 				);
 			}
 		}
 		
 		/*** PROPERTIES ***/
 		if(!empty($bc_obj->custom_fields)) {
+			$property_ids = array();
 			foreach($bc_obj->custom_fields as $bc_custom) {
 				$key = $bc_custom->name;
 				$wombat_obj->properties->$key = $bc_custom->text;
+				$property_ids[$key] = $bc_custom->id;
 			}
+			$wombat_obj->bigcommerce_property_ids = $property_ids;
 		}
 		
 		/*** OPTIONS ***/
@@ -106,7 +110,8 @@ class Product {
 					'cost_price' => (float) number_format($bc_sku->cost_price, 2, '.', ''),
 					'options' => (object) array(),
 					'quantity' => 1,
-					'images' => array()
+					'images' => array(),
+					'bigcommerce_id' => $bc_sku->id,
 				);
 				
 				// Add options to variant
@@ -142,6 +147,7 @@ class Product {
 						}
 						
 						if($rule_passes_conditions) { // PASSED!! Apply rule
+							$new_variant->bigcommerce_rule_id = $bc_rule->id;
 							// Price adjuster
 							if(isset($bc_rule->price_adjuster->adjuster)) {
 								switch($bc_rule->price_adjuster->adjuster) {
@@ -725,7 +731,7 @@ class Product {
 					// replace request shell with loaded resource
 					try {
 						$response = $client->get($resource->url);
-					} catch (Exception $e) {
+					} catch (\Exception $e) {
 						//throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 						// @todo: find a way to insert the request_id here:
 						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\":::::".$e->getResponse()->getBody(),500);

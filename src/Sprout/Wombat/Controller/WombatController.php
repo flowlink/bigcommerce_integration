@@ -434,6 +434,12 @@ class WombatController {
 		}
 
 		$bcModel->pushAttachedResources();
+
+		if($wombat_request = $this->initWombatData($request,$app)) {
+			$wombatClient = $this->wombatClient($wombat_request);
+			//$bcModel->addWombatClient();
+			$bcModel->pushBigCommerceIDs($wombatClient,$request_data);
+		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
@@ -807,6 +813,7 @@ class WombatController {
 				case 'max_date_last_imported':
 					//for products, transform any ISO formatted dates to RFC2822
 					if($context == '/get_products') {
+						date_default_timezone_set('UTC');
 						$date = date(\DateTime::RFC2822,strtotime($value));
 						$parameters[$key] = $date;
 					}

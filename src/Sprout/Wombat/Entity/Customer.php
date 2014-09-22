@@ -222,17 +222,20 @@ class Customer {
 			//echo print_r($options['body'],true).PHP_EOL;
 			try {
 				if($action == 'create') {
-					$client->post($path,$options);
+					$response = $client->post($path,$options);
 				} else if($action == 'update') {
 					$address_id = $wombat_obj->billing_address['bigcommerce_id'];
 					$path = "customers/$id/addresses/$address_id";
 
-					$client->put($path,$options);
+					$response = $client->put($path,$options);
 				}
 			}
 			catch(\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
 			}
+			
+			$bc_address = $response->json(array('object'=>TRUE));
+			$wombat_obj->billing_address['bigcommerce_id'] = $bc_address->id;
 		}
 
 
@@ -256,19 +259,58 @@ class Customer {
 			//echo print_r($options['body'],true).PHP_EOL;
 			try {
 				if($action == 'create') {
-					$client->post($path,$options);
+					$response = $client->post($path,$options);
 				} else if($action == 'update') {
 					$address_id = $wombat_obj->shipping_address['bigcommerce_id'];
 					$path = "customers/$id/addresses/$address_id";
 					
-					$client->put($path,$options);
+					$response = $client->put($path,$options);
 				}
 			}
 			catch(\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
 			}
+
+			$bc_address = $response->json(array('object'=>TRUE));
+			$wombat_obj->shipping_address['bigcommerce_id'] = $bc_address->id;
 		}
 		
+	}
+
+	public function pushBigCommerceIDs($client, $request_data) {
+		$wombat_obj = (object) $this->data['wombat'];
+
+		$customer_id = $this->getBCID();
+
+		$customer = (object) array(
+			'id' 							=> $wombat_obj->id,
+			'bigcommerce_id'	=> $customer_id,
+			);
+
+		if(!empty($wombat_obj->billing_address)) {
+			$customer->billing_address = $wombat_obj->billing_address;
+			
+		}
+		if(!empty($wombat_obj->shipping_address)) {
+			$customer->billing_address = $wombat_obj->shipping_address;
+		}
+
+		$update_data = (object) array(
+			'customers' => array($customer),
+			);
+		// echo print_r($update_data).PHP_EOL;
+
+		try{
+			$client_options = array(
+				'headers'=>array('Content-Type'=>'application/json'),
+				'body' => (string)json_encode($update_data),
+				//'debug' => fopen('debug.txt','w'),
+				);
+			$client->post('',$client_options);
+		}
+		catch (\Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from Wombat while pushing BigCommerce ID values for \"".$wombat_obj->id."\":::::".$e->getResponse()->getBody(),500);
+		}
 	}
 
 	/**
