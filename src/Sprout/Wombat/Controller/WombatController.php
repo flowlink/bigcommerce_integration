@@ -432,7 +432,7 @@ class WombatController {
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
-
+		
 		$bcModel->pushAttachedResources();
 
 		if($wombat_request = $this->initWombatData($request,$app)) {
