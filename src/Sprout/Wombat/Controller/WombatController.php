@@ -115,10 +115,11 @@ class WombatController {
 		$bcModel->pushAttachedResources();
 
 
-		// if($wombat_request = $this->initWombatData($request,$app)) {
-		// 	$bcModel->addWombatClient($wombat_request);
-		// 	$bcModel->pushBigCommerceIDs();
-		// }
+		if($wombat_request = $this->initWombatData($request,$app)) {
+			$wombatClient = $this->wombatClient($wombat_request);
+			//$bcModel->addWombatClient();
+			$bcModel->pushBigCommerceIDs($wombatClient,$request_data);
+		}
 
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
@@ -780,16 +781,19 @@ class WombatController {
 
 		$access_token = $app['wombat.token']->getToken($request->headers->get('X-Hub-Store'));
 		if($access_token) {
-			$wombat_headers = array(
-				'store'		=> $request->headers->get('X-Hub-Store'),
-				'token'		=> $request->headers->get('X-Hub-Token'),
-				'access'	=> $access_token,
-				);
+			$data = array(
+				'base_url' => $app['wombat_api_base'],
+				'wombat_headers' => array(
+					'store'		=> $request->headers->get('X-Hub-Store'),
+					'token'		=> $request->headers->get('X-Hub-Token'),
+					'access'	=> $access_token,
+					),
+			);
 		} else {
 			return false;
 		}
 
-		return $wombat_headers;
+		return $data;
 	}
 
 	/**
@@ -841,10 +845,11 @@ class WombatController {
 		$wombat_headers = $connection['wombat_headers'];
 
 		$client = new Client(array(
+			'base_url' =>  $connection['base_url'],
 			'defaults' => array(
 				'headers' => array(
-					'X-Hub-Store' 				=> $connection['store'],
-					'X-Hub-Access-Token'	=> $connection['access'],
+					'X-Hub-Store' 				=> $connection['wombat_headers']['store'],
+					'X-Hub-Access-Token'	=> $connection['wombat_headers']['access'],
 					),
 				),
 			));

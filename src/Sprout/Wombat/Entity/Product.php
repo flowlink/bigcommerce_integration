@@ -399,6 +399,63 @@ class Product {
 		$this->data['wombat'] = $wombat_obj;
 	}
 
+	public function pushBigCommerceIDs($client, $request_data) {
+		$wombat_obj = (object) $this->data['wombat'];
+
+		$product_id = $this->getBCID();
+
+		$product = (object) array(
+			'id' 							=> $wombat_obj->id,
+			'bigcommerce_id'	=> $product_id,
+			);
+
+		//find images, property_ids and variants, convert back to objects as necessary
+		if(!empty($wombat_obj->images)) {
+			$images = array();
+			foreach($wombat_obj->images as $image) {
+				$image = (object)$image;
+				$image->dimensions = (object) $image->dimensions;
+				$images[] = $image;
+			}
+			$product->images = $images;
+		}
+		if(!empty($wombat_obj->bigcommerce_property_ids)) {
+			$product->bigcommerce_property_ids = $wombat_obj->bigcommerce_property_ids;
+		}
+		if(!empty($wombat_obj->variants)) {
+			$variants = array();
+			foreach ($wombat_obj->variants as $variant) {
+				$variant = (object) $variant;
+				$images = array();
+				foreach ($variant->images as $image) {
+					$image = (object)$image;
+					$image->dimensions = (object) $image->dimensions;
+					$images[] = $image;
+				}
+				$variant->images = $images;
+				$variants[] = $variant;
+			}
+			$product->variants = $variants;
+		}
+
+		$update_data = (object) array(
+			'products' => array($product),
+			);
+		echo print_r($update_data).PHP_EOL;
+
+		try{
+			$client_options = array(
+				'headers'=>array('Content-Type'=>'application/json'),
+				'body' => (string)json_encode($update_data),
+				'debug' => fopen('debug.txt','w'),
+				);
+			$client->post('',$client_options);
+		}
+		catch (\Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from Wombat while pushing BigCommerce ID values for \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
+		}
+	}
+
 	/**
 	 * Get categories from Wombat taxons
 	 */
@@ -632,13 +689,14 @@ class Product {
 	public function getBCID() {
 		$client = $this->client;
 		$request_data = $this->request_data;
+		$wombat_obj = (object) $this->data['wombat'];
 
-		if(!empty($this->data['wombat']['bigcommerce_id'])) {
-			return $this->data['wombat']['bigcommerce_id'];
+		if(!empty($wombat_obj->bigcommerce_id)) {
+			return $wombat_obj->bigcommerce_id;
 		}
 
 		//if no BCID stored, query BigCommerce for the SKU
-		$sku = $this->data['wombat']['id'];
+		$sku = $wombat_obj->id;
 		
 		try {
 			$response = $client->get('products',array('query'=>array('sku'=>$sku)));
