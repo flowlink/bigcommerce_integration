@@ -144,8 +144,8 @@ class Order {
 		
 		/*** PAYMENTS ***/
 		$wombat_obj->payments[] = (object) array(
-			'number' => $bc_obj->payment_provider_id,
-			'status' => $bc_obj->payment_status,
+			'number' => $this->getPaymentNumber($bc_obj),
+			'status' => $this->getPaymentStatus($bc_obj),
 			'amount' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
 			'payment_method' => $bc_obj->payment_method
 		);
@@ -262,6 +262,36 @@ class Order {
 			$this->data['bc']->_shipping_address = $this->data['bc']->shipping_addresses[0];
 		}
 
+	}
+
+	public function getPaymentNumber($bc_obj) {
+		$number = "N/A";
+		if(!is_null($bc_obj->payment_provider_id)) {
+			$number = $bc_obj->payment_provider_id;
+		}
+		return $number;
+	}
+	public function getPaymentStatus($bc_obj) {
+		$status = "";
+		if(!empty($bc_obj->payment_status)) {
+			$status = $bc_obj->payment_status;
+		} else {
+			switch (strtoupper($bc_obj->payment_method)) {
+				case 'MONEY ORDER':
+				case 'CHECK':
+				case 'PAY IN STORE':
+				case 'CASH ON DELIVERY':
+					$status = "Pending";
+					break;
+				case 'CASH':
+					$status = "Completed";
+					break;
+				default:
+					$status = "Pending"; // @todo : Default status?
+					break;
+			}
+		}
+		return $status;
 	}
 
 	public function getHashId($id) {
