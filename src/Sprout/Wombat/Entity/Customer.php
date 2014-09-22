@@ -128,7 +128,7 @@ class Customer {
 			
 		// 	return $data[0]->id;
 		// } catch (Exception $e) {
-		// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+		// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\":::::".$e->getMessage()->getBody(),500);
 		// }
 		$hash = $this->request_data['hash'];
 		$id = $this->data['wombat']['id'];
@@ -231,7 +231,7 @@ class Customer {
 				}
 			}
 			catch(\Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address: ".$e->getResponse(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
 			}
 		}
 
@@ -265,7 +265,7 @@ class Customer {
 				}
 			}
 			catch(\Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address: ".$e->getResponse(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
 			}
 		}
 		

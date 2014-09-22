@@ -44,7 +44,7 @@ class WombatController {
 		try {
 			$response = $client->get('products', array('query' => $request_data['parameters']));
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].'::::: Error received from BigCommerce: '.$e->getResponse(),500);
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$e->getResponse()->getBody(),500);
 		}
 		$response_status = intval($response->getStatusCode());
 
@@ -78,7 +78,7 @@ class WombatController {
 			
 		} else { // error
 			
-			throw new \Exception($request_data['request_id'].'::::: Error received from BigCommerce: '.$response->getBody(),500);
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$response->getBody(),500);
 			
 		}
 	}
@@ -108,8 +108,8 @@ class WombatController {
 		
 		try {
 			$response = $client->post('products',$options);
-		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getResponse(),500);
+		} catch (\Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 
 		$bcModel->pushAttachedResources();
@@ -125,7 +125,7 @@ class WombatController {
 		// make it not do that or catch an exception rather than checking code
 
 		if($response->getStatusCode() != 201) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -160,7 +160,7 @@ class WombatController {
 		try {
 			$response = $client->put('products/'.$bc_id,$options);
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 
 		$bcModel->pushAttachedResources('update');
@@ -169,7 +169,7 @@ class WombatController {
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 200) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -206,13 +206,13 @@ class WombatController {
 		try {
 			$response = $client->put('products/'.$wombat_data['product_id'],$options);
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 200) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -270,7 +270,7 @@ class WombatController {
 			return $app->json($this->emptyResponse($request_data,'orders'), 200);
 			
 		} else { // error
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce: '.$response->getBody(),500);			
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);			
 		}
 	}
 
@@ -297,13 +297,13 @@ class WombatController {
 		try {
 			$response = $client->post('orders',$options);
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 201) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -340,13 +340,13 @@ class WombatController {
 		try {
 			$response = $client->put("orders/$bc_id",$options);
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 200) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -403,7 +403,7 @@ class WombatController {
 			return $app->json($this->emptyResponse($request_data,'customers'), 200);
 			
 		} else { // error
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce: '.$response->getBody(),500);			
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);			
 		}
 	}
 
@@ -430,7 +430,7 @@ class WombatController {
 			$response = $client->post('customers',$options);
 
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 
 		$bcModel->pushAttachedResources();
@@ -438,7 +438,7 @@ class WombatController {
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 201) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -475,8 +475,7 @@ class WombatController {
 		try {
 			$response = $client->put("customers/$bc_id",$options);
 		} catch (RequestException $e) {
-			echo "ERROR ".$e->getMessage().PHP_EOL;
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 
 		$bcModel->pushAttachedResources('update');
@@ -484,7 +483,7 @@ class WombatController {
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 200) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -581,7 +580,7 @@ class WombatController {
 				// @todo: rework response status logic checking
 				
 			} else { // error
-				throw new \Exception($request_data['request_id'].': Error received from BigCommerce: '.$response->getBody(),500);			
+				throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);			
 			}
 		}
 
@@ -646,7 +645,7 @@ class WombatController {
 			
 		} else { // error
 			
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce: '.$response->getBody(),500);
+			throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);
 			
 		}
 	}
@@ -678,14 +677,13 @@ class WombatController {
 		try {
 			$response = $client->post('orders/'.$wombat_data['order_id'].'/shipments',$options);
 		} catch (RequestException $e) {
-			echo "ERROR ".$e->getMessage().PHP_EOL;
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 201) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -721,14 +719,13 @@ class WombatController {
 		try {
 			$response = $client->put("orders/$bc_id/shipments/".$wombat_data['id'],$options);
 		} catch (RequestException $e) {
-			echo "ERROR ".$e->getMessage().PHP_EOL;
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 200) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
@@ -882,7 +879,7 @@ class WombatController {
 		$response = $client->get('time');
 
 		if($response->getStatusCode() != 200) {
-			throw new Exception("$request_id:::::Error received from BigCommerce: ".$response->getBody(),500);
+			throw new Exception("$request_id:::::Error received from BigCommerce:::::".$response->getBody(),500);
 		}
 	}
 

@@ -89,9 +89,16 @@ $app->error(function (\Exception $e, $code) use($app) {
     }
     $parts = explode(":::::", $e->getMessage());
 
+    $message = isset($parts[1]) ? $parts[1] : NULL;
+    $external_response = (count($parts)>2)?json_decode($parts[2]):false;
+    
+
+    $summary = $message." : ".$external_response;
+
     $response = array(
     	'request_id' => isset($parts[0]) ? $parts[0] : NULL,
-    	'summary' => isset($parts[1]) ? $parts[1] : NULL,
+    	'summary' => $message,
+        'additional_details' => $external_response,
     	);
     	
     return $app->json($response,$code); 

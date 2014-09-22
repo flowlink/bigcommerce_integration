@@ -270,7 +270,7 @@ class Product {
 						$response = $client->put("products/$bc_id/images/$image_id",$client_options);
 					}
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"image\" for product \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"image\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 				}
 
 				$created_image = $response->json(array('object'=>TRUE));
@@ -389,7 +389,7 @@ class Product {
 						$response = $client->put("products/$bc_id/rules/$rule_id",$client_options);
 					}
 				} catch (\Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/rules\" for product \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/rules\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 				}
 				$bigcommerce_rule = $response->json(array('object'=>TRUE));
 				$variant['bigcommerce_rule_id'] = $bigcommerce_rule->id;
@@ -453,7 +453,7 @@ class Product {
 			$client->post('',$client_options);
 		}
 		catch (\Exception $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from Wombat while pushing BigCommerce ID values for \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from Wombat while pushing BigCommerce ID values for \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 		}
 	}
 
@@ -474,7 +474,7 @@ class Product {
 				try {
 						$response = $client->get("categories",array('query'=>array('name'=>$categoryname)));
 					} catch (Exception $e) {
-						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
 					// echo $response->getStatusCode().PHP_EOL;
 					if($response->getStatusCode() == 204) {
@@ -516,7 +516,7 @@ class Product {
 					try {
 						$response = $client->get("brands",array('query'=>array('name'=>$brandname)));
 					} catch (Exception $e) {
-						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
 					if($response->getStatusCode() == 204) {
 						//create brand?
@@ -572,7 +572,7 @@ class Product {
 			try {
 				$response = $client->get("option_sets");
 			} catch (Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 			}
 
 			$results = $response->json(array('object'=>TRUE));
@@ -585,7 +585,7 @@ class Product {
 				try {
 					$response = $client->get($resource);
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 				}
 
 				$results = $response->json(array('object'=>TRUE));
@@ -609,7 +609,7 @@ class Product {
 			try {
 				$response = $client->get("products/$product_id/options");
 			} catch (Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 			}
 			// echo "RESPONSE".PHP_EOL.print_r($response->json(array('object'=>TRUE)),true).PHP_EOL;
 			$product_options = $response->json(array('object'=>TRUE));
@@ -634,7 +634,7 @@ class Product {
 				try {
 					$response = $client->get("options/".$product_option->option_id);
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 				}
 				$option = $response->json(array('object'=>TRUE));
 				$resource = substr($option->values->resource,1);
@@ -645,7 +645,7 @@ class Product {
 				try {
 					$response = $client->get($resource);
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 				}
 
 				$values = $response->json(array('object'=>TRUE));
@@ -705,7 +705,7 @@ class Product {
 
 			return $data[0]->id;
 		} catch (Exception $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\":::::".$e->getResponse()->getBody(),500);
 		}
 	}
 	
@@ -724,9 +724,9 @@ class Product {
 					try {
 						$response = $client->get($resource->url);
 					} catch (Exception $e) {
-						//throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+						//throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 						// @todo: find a way to insert the request_id here:
-						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\": ".$e->getMessage(),500);
+						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
 					
 					if(intval($response->getStatusCode()) === 200)
