@@ -91,9 +91,6 @@ $app->error(function (\Exception $e, $code) use($app) {
 
     $message = isset($parts[1]) ? $parts[1] : NULL;
     $external_response = (count($parts)>2)?json_decode($parts[2]):false;
-    
-
-    $summary = $message." : ".$external_response;
 
     $response = array(
     	'request_id' => isset($parts[0]) ? $parts[0] : NULL,
