@@ -57,7 +57,6 @@ class Order {
 				'state' => $bc_obj->billing_address->state,
 				'country' => $bc_obj->billing_address->country_iso2,
 				'phone' => $bc_obj->billing_address->phone,
-				'phone' => $bc_obj->billing_address->id,
 			),
 			'payments' => array(),
 			'bigcommerce_id' => $bc_obj->id,
