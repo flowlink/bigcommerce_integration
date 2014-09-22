@@ -773,7 +773,6 @@ class WombatController {
 			'legacy_api_info'	=> $legacy_api_info,
 			'store_url'				=> $store_url,
 			'hash'						=> $storehasher($store_url),
-			'wombat_headers'	=> $wombat_headers,
 			);
 	}
 
