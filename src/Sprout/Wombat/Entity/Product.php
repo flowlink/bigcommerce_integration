@@ -211,7 +211,7 @@ class Product {
 			'type' 							=> 'physical',
 			'availability' 			=> 'available',
 			'weight' 						=> (string)1,
-			'custom_url' 				=> $wombat_obj->permalink,
+			'custom_url' 				=> $this->processPermalink($wombat_obj->permalink),
 			'meta_description'	=> $wombat_obj->meta_description,
 			'meta_keywords'			=> $wombat_obj->meta_keywords,
 		);
@@ -788,6 +788,19 @@ class Product {
 			}
 		}
 		
+	}
+
+	/**
+	 * Make sure the permalink has slashes: /example/
+	 */
+	private function processPermalink($permalink) {
+		if(substr($permalink, 0,1) != '/') {
+			$permalink = '/'.$permalink;
+		}
+		if(substr($permalink, strlen($permalink)-1,1) != '/') {
+			$permalink .= '/';
+		}
+		return $permalink;
 	}
 	
 }
