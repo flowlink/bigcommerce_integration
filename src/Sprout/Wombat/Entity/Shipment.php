@@ -99,7 +99,7 @@ class Shipment {
 
 		//retrieve shipping addresses already associated with the order_id
 		$wombat_obj = (object)$this->data['wombat'];
-		$order_id = $wombat_obj->order_id;
+		$order_id = $this->getBCID();
 		
 		$response = $client->get("orders/$order_id/shipping_addresses");
 					
@@ -161,7 +161,7 @@ class Shipment {
 		$hash = $this->request_data['hash'];
 		$id = $this->data['wombat']['id'];
 
-		if(strlen($id) >= strlen($hash)) {
+		if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
 			$id = str_replace($hash.'_', '', $id);
 		}
 		return $id;

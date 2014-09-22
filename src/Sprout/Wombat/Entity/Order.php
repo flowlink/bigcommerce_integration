@@ -225,7 +225,7 @@ class Order {
 		$hash = $this->request_data['hash'];
 		$id = $this->data['wombat']['id'];
 
-		if(strlen($id) >= strlen($hash)) {
+		if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
 			$id = str_replace($hash.'_', '', $id);
 		}
 		return $id;
