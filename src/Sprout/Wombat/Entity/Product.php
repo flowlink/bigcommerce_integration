@@ -235,7 +235,7 @@ class Product {
 	 * custom fields, skus
 	 * NB: options can't be set directly on the product - it has to be done through the option set???
 	 */
-	public function pushAttachedResources() {
+	public function pushAttachedResources($action = 'create') {
 		$client = $this->client;
 		$request_data = $this->request_data;
 		$wombat_obj = (object) $this->data['wombat'];
@@ -248,7 +248,7 @@ class Product {
 		
 		//map Wombat images
 		if(!empty($wombat_obj->images)) {
-			foreach($wombat_obj->images as $image) {
+			foreach($wombat_obj->images as &$image) {
 				// echo print_r($image,true).PHP_EOL;
 				$data = (object) array(
 					'image_file' 		=> $image['url'],
@@ -263,16 +263,25 @@ class Product {
 						//'debug'=>fopen('debug.txt', 'w')
 				);
 				try {
-					$client->post("products/$bc_id/images",$client_options);
+					if($action == 'create') {
+						$response = $client->post("products/$bc_id/images",$client_options);
+					} else if($action == 'update' && !empty($image['bigcommerce_id'])) {
+						$image_id = $image['bigcommerce_id'];
+						$response = $client->put("products/$bc_id/images/$image_id",$client_options);
+					}
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"image\" for product \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
 				}
+
+				$created_image = $response->json(array('object'=>TRUE));
+				$image['bigcommerce_id'] = $created_image->id;
+
 			}
 		}
 		
 		//map Wombat properties onto BC custom fields
 		if(!empty($wombat_obj->properties)) {
-			
+			$bigcommerce_property_ids = array();
 			foreach($wombat_obj->properties as $name => $value) {
 				$data = (object) array(
 					'name' => $name, 
@@ -285,19 +294,27 @@ class Product {
 				);
 				// echo print_r($client_options,true).PHP_EOL;
 				try {
-					$client->post("products/$bc_id/custom_fields",$client_options);
+					if($action == 'create') {
+						$response = $client->post("products/$bc_id/custom_fields",$client_options);
+					} else if($action == 'update' && !empty($wombat_obj->bigcommerce_property_ids[$name])) {
+						$custom_field_id = $wombat_obj->bigcommerce_property_ids[$name];
+						$response = $client->put("products/$bc_id/custom_fields/$custom_field_id",$client_options);
+					}
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getReponse(),500);
 				}
-			}
 
+				$custom_field = $response->json(array('object'=>TRUE));
+				$bigcommerce_property_ids[$name] = $custom_field->id;
+			}
+			$wombat_obj->bigcommerce_property_ids = $bigcommerce_property_ids;
 		}
 
 		//Map Wombat variants onto BC SKUs & rules
 		if(!empty($wombat_obj->variants)) {
 			// echo print_r($wombat_obj->variants,true).PHP_EOL;
 
-			foreach($wombat_obj->variants as $variant) {
+			foreach($wombat_obj->variants as &$variant) {
 				$data = (object) array(
 					'sku' => 							$variant['sku'],
 					'cost_price' => 			$variant['cost_price'],
@@ -314,12 +331,18 @@ class Product {
 						//'debug'=>fopen('debug.txt', 'w')
 				);
 				try {
-					$response = $client->post("products/$bc_id/skus",$client_options);
+					if($action == 'create') {
+						$response = $client->post("products/$bc_id/skus",$client_options);
+					} else if($action == 'update' && !empty($variant['bigcommerce_id'])) {
+						$sku_id = $variant['bigcommerce_id'];
+						$response = $client->put("products/$bc_id/skus/$sku_id",$client_options);
+					}
 				} catch (Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getMessage(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"variant\" for product \"".$wombat_obj->sku."\": ".$e->getReponse(),500);
 				}
 
 				$sku = $response->json(array('object'=>TRUE));
+				$variant['bigcommerce_id'] = $sku->id;
 
 				//echo "SKU: ".print_r($sku,true).PHP_EOL;
 				//handle price & images via rule
@@ -331,18 +354,23 @@ class Product {
 						'adjuster'				=> 'absolute',
 						'adjuster_value'	=> $variant['price'],
 						),
-					'conditions'			=> array(
-						(object) array(
-							"product_option_id"	=> null,
-    					"option_value_id"		=> null,
-    					"sku_id"						=> $sku->id
-							),
-						),
 					'is_purchasing_disabled' 			=> false,
 					'purchasing_disabled_message'	=> '',
 					'is_purchasing_hidden'				=> false,
 					'weight_adjuster'							=> null,
 					);
+
+				//adding the rule conditions again on an update will result in the same condition being added with an 'or'
+				if($action != 'update') {
+					$rule->conditions			= array(
+						(object) array(
+							"product_option_id"	=> null,
+    					"option_value_id"		=> null,
+    					"sku_id"						=> $sku->id
+							),
+						);
+				}
+
 				if(!empty($variant['images'])) {
 					$rule->image_file = $variant['images'][0]['url'];
 				}
@@ -354,13 +382,21 @@ class Product {
 				);
 				// echo "RULE: ".print_r($client_options['body'],true).PHP_EOL;
 				try {
-					$response = $client->post("products/$bc_id/rules",$client_options);
+					if($action == 'create') {
+						$response = $client->post("products/$bc_id/rules",$client_options);
+					} else if($action == 'update' && !empty($variant['bigcommerce_rule_id'])) {
+						$rule_id = $variant['bigcommerce_rule_id'];
+						$response = $client->put("products/$bc_id/rules/$rule_id",$client_options);
+					}
 				} catch (\Exception $e) {
-					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
+					throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/rules\" for product \"".$wombat_obj->sku."\": ".$e->getResponse(),500);
 				}
+				$bigcommerce_rule = $response->json(array('object'=>TRUE));
+				$variant['bigcommerce_rule_id'] = $bigcommerce_rule->id;
+
 			}
 		}
-
+		$this->data['wombat'] = $wombat_obj;
 	}
 
 	/**

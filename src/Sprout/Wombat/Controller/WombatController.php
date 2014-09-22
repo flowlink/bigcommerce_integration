@@ -109,14 +109,17 @@ class WombatController {
 		try {
 			$response = $client->post('products',$options);
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getResponse(),500);
 		}
 
+		$bcModel->pushAttachedResources();
+
+
 		// if($wombat_request = $this->initWombatData($request,$app)) {
-			
+		// 	$bcModel->addWombatClient($wombat_request);
+		// 	$bcModel->pushBigCommerceIDs();
 		// }
 
-		$bcModel->pushAttachedResources();
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
 
@@ -158,6 +161,9 @@ class WombatController {
 		} catch (RequestException $e) {
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce: ".$e->getMessage(),500);
 		}
+
+		$bcModel->pushAttachedResources('update');
+
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
