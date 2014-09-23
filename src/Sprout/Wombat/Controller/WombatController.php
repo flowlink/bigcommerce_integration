@@ -678,23 +678,25 @@ class WombatController {
 			//'debug'=>fopen('debug.txt', 'w')
 			);
 
-		echo $options['body'].PHP_EOL;
+		// echo $options['body'].PHP_EOL;
+
+		$order_id = $bcModel->getBCID('order');
 		
 		try {
-			$response = $client->post('orders/'.$wombat_data['order_id'].'/shipments',$options);
+			$response = $client->post('orders/'.$order_id.'/shipments',$options);
 		} catch (RequestException $e) {
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while creating shipment:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// the above code takes care of that, but investigate if checking the code below is ever necessary
 
 		if($response->getStatusCode() != 201) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce while creating shipment:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
-				'summary' => "The shipment for order $bc_data->order_id was created in BigCommerce",
+				'summary' => "The shipment for order $order_id was created in BigCommerce",
 				);
 			return $app->json($response,200);
 		}
