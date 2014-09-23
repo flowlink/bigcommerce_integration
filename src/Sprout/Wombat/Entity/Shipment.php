@@ -101,7 +101,11 @@ class Shipment {
 		$wombat_obj = (object)$this->data['wombat'];
 		$order_id = $this->getBCID('order');
 		
-		$response = $client->get("orders/$order_id/shipping_addresses");
+		try {
+			$response = $client->get("orders/$order_id/shipping_addresses");
+		} catch (\Exception $e) {
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce while retrieving shipping addresses:::::".$e->getResponse()->getBody(),500);
+		}
 					
 		if(intval($response->getStatusCode()) === 200)
 			//$this->data['bc']->$resource_name = $response->json(array('object'=>TRUE));
@@ -129,11 +133,15 @@ class Shipment {
 			}
 		}
 		if(empty($this->data['wombat']['_order_address_id'])) {
-			throw new \Exception($request_data['request_id'],":::::Unable to find the provided shipment address",500);
+			throw new \Exception($request_data['request_id'].":::::Unable to find the provided shipment address",500);
 		}
 
 		// get order products for the order_product_id
-		$response = $client->get("orders/$order_id/products");
+		try {
+			$response = $client->get("orders/$order_id/products");
+		} catch (\Exception $e) {
+			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce while retrieving line items:::::".$e->getResponse()->getBody(),500);
+		}
 
 		if(intval($response->getStatusCode()) === 200)
 			//$this->data['bc']->$resource_name = $response->json(array('object'=>TRUE));
