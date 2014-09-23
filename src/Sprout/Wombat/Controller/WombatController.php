@@ -670,7 +670,6 @@ class WombatController {
 		$bcModel = new Shipment($wombat_data,'wombat', $client, $request_data);
 		$bcModel->prepareBCResources($client);
 		$bc_data = $bcModel->getBigCommerceObject('create');
-		//return print_r($bc_data,true);
 		
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -678,7 +677,6 @@ class WombatController {
 			//'debug'=>fopen('debug.txt', 'w')
 			);
 
-		// echo $options['body'].PHP_EOL;
 
 		$order_id = $bcModel->getBCID('order');
 		

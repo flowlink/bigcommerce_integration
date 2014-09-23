@@ -15,17 +15,6 @@ class Customer {
 		$this->request_data = $request_data;
 	}
 
-
-	/*
-		Wombat attributes:
-		id	Unique identifier for the shipment	String
-		email	Customers email address	String
-		firstname	Customers first name	String
-		lastname	Customers last name	String
-		billing_address	Customers shipping address	Address
-		shipping_address	Customers shipping address	Address
-	*/
-
 	/**
 	 * Get a Wombat-formatted set of data from a BigCommerce one.
 	 */
@@ -102,8 +91,7 @@ class Customer {
 		if(!empty($wombat_obj->billing_address['phone'])) {
 			$bc_obj->phone = $wombat_obj->billing_address['phone'];
 		}
-		// echo print_r($wombat_obj,true).PHP_EOL;
-		// echo print_r($bc_obj,true).PHP_EOL;
+		
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
@@ -197,7 +185,7 @@ class Customer {
 
 		//get the customer ID via their email
 		$id = $this->getBCID($client,$request_data);
-		//echo "BCID: ".$id.PHP_EOL;
+		
 		$path = "customers/$id/addresses";
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -220,7 +208,7 @@ class Customer {
 				);
 
 			$options['body'] = (string)json_encode($billing_address);
-			//echo print_r($options['body'],true).PHP_EOL;
+			
 			try {
 				if($action == 'create') {
 					$response = $client->post($path,$options);
@@ -257,7 +245,7 @@ class Customer {
 				);
 
 			$options['body'] = (string)json_encode($shipping_address);
-			//echo print_r($options['body'],true).PHP_EOL;
+			
 			try {
 				if($action == 'create') {
 					$response = $client->post($path,$options);
@@ -278,6 +266,9 @@ class Customer {
 		
 	}
 
+	/**
+	 * after creating an object in BigCommerce, return the IDs to Wombat
+	 */
 	public function pushBigCommerceIDs($client, $request_data) {
 		$wombat_obj = (object) $this->data['wombat'];
 
@@ -299,7 +290,7 @@ class Customer {
 		$update_data = (object) array(
 			'customers' => array($customer),
 			);
-		// echo print_r($update_data).PHP_EOL;
+		
 
 		try{
 			$client_options = array(
@@ -573,6 +564,10 @@ class Customer {
 		}
 		return $output;
 	}
+
+	/**
+	 * Add the store hash to the object ID
+	 */
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		

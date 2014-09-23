@@ -231,7 +231,7 @@ class Product {
 		if($brand_id) {
 			$bc_obj->brand_id = $brand_id;
 		}
-		 // echo "OBJ: ".print_r($bc_obj,true).PHP_EOL;
+		
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
@@ -247,22 +247,18 @@ class Product {
 		$wombat_obj = (object) $this->data['wombat'];
 
 		$bc_id = $this->getBCID();
-		//echo "PRODUCT ID: $bc_id".PHP_EOL;
-		//$bc_id = 183;
-		//return print_r("STOPPING EARLY FOR TESTING",true);
-		
 		
 		//map Wombat images
 		if(!empty($wombat_obj->images)) {
 			foreach($wombat_obj->images as &$image) {
-				// echo print_r($image,true).PHP_EOL;
+				
 				$data = (object) array(
 					'image_file' 		=> $this->processImageURL($image['url']),
 					'description' 	=> $image['title'],
 					'is_thumbnail' 	=> ($image['type'] == 'thumbnail')?'true':'false',
 					'sort_order'		=> $image['position'],
 					);
-				// echo 'image: '.print_r($data,true).PHP_EOL;
+				
 				$client_options = array(
 					'headers'=>array('Content-Type'=>'application/json'),
 					'body' => (string)json_encode($data),
@@ -298,7 +294,7 @@ class Product {
 					'body' => (string)json_encode($data),
 						//'debug'=>fopen('debug.txt', 'w')
 				);
-				// echo print_r($client_options,true).PHP_EOL;
+				
 				try {
 					if($action == 'create') {
 						$response = $client->post("products/$bc_id/custom_fields",$client_options);
@@ -318,8 +314,7 @@ class Product {
 
 		//Map Wombat variants onto BC SKUs & rules
 		if(!empty($wombat_obj->variants)) {
-			// echo print_r($wombat_obj->variants,true).PHP_EOL;
-
+			
 			foreach($wombat_obj->variants as &$variant) {
 				$data = (object) array(
 					'sku' => 							$variant['sku'],
@@ -329,7 +324,6 @@ class Product {
 
 			
 				$data->options = $this->getSkuOptions($bc_id,$variant['options']);
-				// echo print_r($data,true).PHP_EOL;
 
 				$client_options = array(
 					'headers'=>array('Content-Type'=>'application/json'),
@@ -350,7 +344,6 @@ class Product {
 				$sku = $response->json(array('object'=>TRUE));
 				$variant['bigcommerce_id'] = $sku->id;
 
-				//echo "SKU: ".print_r($sku,true).PHP_EOL;
 				//handle price & images via rule
 				$rule = (object) array(
 					'sort_order'			=> 0,
@@ -380,13 +373,13 @@ class Product {
 				if(!empty($variant['images'])) {
 					$rule->image_file = $this->processImageURL($variant['images'][0]['url']);
 				}
-				// echo "RULE: ".print_r($rule,true).PHP_EOL;
+				
 				$client_options = array(
 					'headers'=>array('Content-Type'=>'application/json'),
 					'body' => (string)json_encode($rule),
 						//'debug'=>fopen('debug.txt', 'w')
 				);
-				// echo "RULE: ".print_r($client_options['body'],true).PHP_EOL;
+				
 				try {
 					if($action == 'create') {
 						$response = $client->post("products/$bc_id/rules",$client_options);
@@ -406,6 +399,9 @@ class Product {
 		$this->data['wombat'] = $wombat_obj;
 	}
 
+	/**
+	 * after creating an object in BigCommerce, return the IDs to Wombat
+	 */
 	public function pushBigCommerceIDs($client, $request_data) {
 		$wombat_obj = (object) $this->data['wombat'];
 
@@ -448,7 +444,6 @@ class Product {
 		$update_data = (object) array(
 			'products' => array($product),
 			);
-		// echo print_r($update_data).PHP_EOL;
 
 		try{
 			$client_options = array(
@@ -473,23 +468,21 @@ class Product {
 
 		foreach($taxons as $taxon) {
 			if(strtoupper($taxon[0]) == 'CATEGORIES') {
-				// echo print_r($taxon,true).PHP_EOL;
+				
 				$categoryname = $taxon[count($taxon)-1];
-				// echo $categoryname.PHP_EOL;
-
+				
 				try {
 						$response = $client->get("categories",array('query'=>array('name'=>$categoryname)));
 					} catch (Exception $e) {
 						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
-					// echo $response->getStatusCode().PHP_EOL;
+					
 					if($response->getStatusCode() == 204) {
-						//create category?
+						// @todo : create category?
 					} else if($response->getStatusCode() == 200) {
 						$categories = $response->json(array('object'=>TRUE));
 						$category = $categories[0];
 						$category_ids[] = $category->id;
-						// echo "categories: ".print_r($categories,true).PHP_EOL;
 					}
 			}
 		}
@@ -517,7 +510,7 @@ class Product {
 			foreach($taxons as $taxon) {
 				if(strtoupper($taxon[0]) == 'BRANDS') {
 					$brandname = $taxon[1];
-					// echo $brandname.PHP_EOL;
+					
 					//find if the brand exists
 					try {
 						$response = $client->get("brands",array('query'=>array('name'=>$brandname)));
@@ -530,7 +523,6 @@ class Product {
 						$brands = $response->json(array('object'=>TRUE));
 						$brand = $brands[0];
 						$brand_id = $brand->id;
-						// echo "BRANDS: ".print_r($brands,true).PHP_EOL;
 					}
 				}
 			}
@@ -584,7 +576,7 @@ class Product {
 			}
 
 			$results = $response->json(array('object'=>TRUE));
-			//echo "RESPONSE".PHP_EOL.print_r($results,true).PHP_EOL;
+			
 			foreach($results as $option_set) {
 				//$option_set->_processed = false;
 				$resource = substr($option_set->options->resource,1);
@@ -597,7 +589,7 @@ class Product {
 				}
 
 				$results = $response->json(array('object'=>TRUE));
-				//echo "RESPONSE".PHP_EOL.print_r($results,true).PHP_EOL;
+				
 				$option_set->options = $results;
 				$this->option_sets[$option_set->id] = $option_set;
 			}
@@ -619,7 +611,7 @@ class Product {
 			} catch (Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching product options for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 			}
-			// echo "RESPONSE".PHP_EOL.print_r($response->json(array('object'=>TRUE)),true).PHP_EOL;
+			
 			$product_options = $response->json(array('object'=>TRUE));
 			foreach($product_options as $option) {
 				$option->_processed = false;
@@ -646,8 +638,6 @@ class Product {
 				}
 				$option = $response->json(array('object'=>TRUE));
 				$resource = substr($option->values->resource,1);
-				
-				// echo "OPTION".PHP_EOL.print_r($option,true).PHP_EOL;
 
 				//get the option's values
 				try {
@@ -658,8 +648,6 @@ class Product {
 
 				$values = $response->json(array('object'=>TRUE));
 
-				// echo "VALUES".PHP_EOL.print_r($values,true).PHP_EOL;
-
 				$option->values = $values;
 
 				//merge addtional option info into the product_option
@@ -669,9 +657,6 @@ class Product {
 				$product_option->_processed = true;
 				$this->product_options[$product_option->option_id] = $product_option;
 			}
-
-			
-			// echo "PRODUCT OPTION:".$product_option->option_id.PHP_EOL.print_r($product_option,true).PHP_EOL;
 
 			$sku_option = array();
 			//loop through the product options, match name
@@ -695,6 +680,9 @@ class Product {
 		return $sku_options;
 	}
 	
+	/**
+	 * Return the BigCommerceID for this object
+	 */
 	public function getBCID() {
 		$client = $this->client;
 		$request_data = $this->request_data;
@@ -717,6 +705,9 @@ class Product {
 		}
 	}
 	
+	/**
+	 * Perform any sub-requests to load additional resources
+	 */
 	public function loadAttachedResources() {
 		$client = $this->client;
 		$request_data = $this->request_data;
@@ -732,8 +723,6 @@ class Product {
 					try {
 						$response = $client->get($resource->url);
 					} catch (\Exception $e) {
-						//throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
-						// @todo: find a way to insert the request_id here:
 						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
 					

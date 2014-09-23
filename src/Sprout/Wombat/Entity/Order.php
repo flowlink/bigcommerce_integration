@@ -218,6 +218,9 @@ class Order {
 		return $bc_obj;
 	}
 
+	/**
+	 * Return the BigCommerceID for this object
+	 */
 	public function getBCID() {
 		if(!empty($this->data['wombat']['bigcommerce_id'])) {
 			return $this->data['wombat']['bigcommerce_id'];
@@ -231,6 +234,9 @@ class Order {
 		return $id;
 	}
 	
+	/**
+	 * Perform any sub-requests to load additional resources
+	 */
 	public function loadAttachedResources()
 	{
 		$client = $this->client;
@@ -254,7 +260,6 @@ class Order {
 			}
 		}
 		
-		
 		// organize extra resources (not really in API)
 		
 		/* First shipping address */
@@ -264,6 +269,9 @@ class Order {
 
 	}
 
+	/**
+	 * Get payment number, or default if not set
+	 */
 	public function getPaymentNumber($bc_obj) {
 		$number = "N/A";
 		if(!is_null($bc_obj->payment_provider_id)) {
@@ -271,6 +279,10 @@ class Order {
 		}
 		return $number;
 	}
+
+	/**
+	 * Get payment status, or default if not set
+	 */
 	public function getPaymentStatus($bc_obj) {
 		$status = "";
 		if(!empty($bc_obj->payment_status)) {
@@ -294,6 +306,9 @@ class Order {
 		return $status;
 	}
 
+	/**
+	 * Add the store hash to the object ID
+	 */
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		

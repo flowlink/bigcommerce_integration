@@ -90,10 +90,13 @@ class Shipment {
 		}
 
 		$this->data['bc'] = $bc_obj;
-		// echo print_r($bc_obj,true).PHP_EOL;
+		
 		return $bc_obj;
 	}
 
+	/**
+	 * get required IDs from BigCommerce to be able to push a new shipment
+	 */
 	public function prepareBCResources() {
 		$client = $this->client;
 		$request_data = $this->request_data;
@@ -116,9 +119,7 @@ class Shipment {
 			$addresses = NULL;
 
 		//check each address against the one we've been passed, use the ID from the first one that matches
-		// echo "ADDR: ".print_r($addresses,true).PHP_EOL;
-		// echo print_r($wombat_obj->shipping_address,true).PHP_EOL;
-		
+				
 		if(is_array($addresses)) {
 			foreach($addresses as $address) {
 				if(
@@ -136,7 +137,7 @@ class Shipment {
 				
 			}
 		}
-		// echo $this->data['wombat']['_order_address_id'].PHP_EOL;
+		
 		if(empty($this->data['wombat']['_order_address_id'])) {
 			throw new \Exception($request_data['request_id'].":::::Unable to find the provided shipment address",500);
 		}
@@ -154,7 +155,7 @@ class Shipment {
 		else
 			//$this->data['bc']->$resource_name = NULL;
 			$products = NULL;
-		// echo "PROD:".print_r($products,true).PHP_EOL;
+		
 		// go through the resulting products and match the product_ids to get the order_product_id
 		if(is_array($products)) {
 			foreach($products as $product) {
@@ -169,6 +170,9 @@ class Shipment {
 		}
 	}
 
+	/**
+	 * Return the BigCommerceID for this object
+	 */
 	public function getBCID($fetch = "shipment") {
 		
 
@@ -190,6 +194,10 @@ class Shipment {
 		}
 		return $id;
 	}
+
+	/**
+	 * Add the store hash to the object ID
+	 */
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		
