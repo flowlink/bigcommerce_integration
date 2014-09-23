@@ -81,7 +81,7 @@ class Order {
 		/*** LINE_ITEMS ***/
 		foreach($bc_obj->products as $bc_prod) {
 			$new_line_item = (object) array(
-				'product_id' => empty($bc_prod->sku) ? $bc_obj->id : $bc_prod->sku,
+				'product_id' => empty($bc_prod->sku) ? $bc_prod->id : $bc_prod->sku,
 				'name' => $bc_prod->name,
 				'quantity' => $bc_prod->quantity,
 				'price' => (float) number_format($bc_prod->price_ex_tax, 2, '.', '')
