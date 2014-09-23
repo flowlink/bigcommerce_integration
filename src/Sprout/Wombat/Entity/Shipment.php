@@ -4,8 +4,19 @@ namespace Sprout\Wombat\Entity;
 
 class Shipment {
 
+	/**
+	 * @var array $data Hold the JSON object data retrieved from the source
+	 */
 	protected $data;
+	
+	/**
+	 * @var array $client Http client object to perform additional requests
+	 */
 	private $client;
+
+	/**
+	 * @var array $request_data Data about the request that we've been sent
+	 */
 	private $request_data;
 
 	public function __construct($data, $type='bc',$client,$request_data) {

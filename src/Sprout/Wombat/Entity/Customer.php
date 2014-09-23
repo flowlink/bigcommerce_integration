@@ -4,9 +4,24 @@ namespace Sprout\Wombat\Entity;
 
 class Customer {
 
+	/**
+	 * @var array $data Hold the JSON object data retrieved from the source
+	 */
 	protected $data;
+
+	/**
+	 * @var array $_attached_resources Field names for data not contained in the main object that will need to be retrieved
+	 */
 	private $_attached_resources = array('addresses');
+	
+	/**
+	 * @var array $client Http client object to perform additional requests
+	 */
 	private $client;
+
+	/**
+	 * @var array $request_data Data about the request that we've been sent
+	 */
 	private $request_data;
 
 	public function __construct($data, $type='bc',$client,$request_data) {

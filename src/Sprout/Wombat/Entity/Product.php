@@ -4,13 +4,34 @@ namespace Sprout\Wombat\Entity;
 
 class Product {
 
+	/**
+	 * @var array $data Hold the JSON object data retrieved from the source
+	 */
 	protected $data;
+
+	/**
+	 * @var array $_attached_resources Field names for data not contained in the main object that will need to be retrieved
+	 */
 	private $_attached_resources = array('images', 'brand', 'discount_rules', 'custom_fields', 'configurable_fields', 'skus', 'rules', 'option_set', 'options', 'downloads','videos','tax_class');
 
-	private $product_options; //cache the product options
-	private $option_sets; //cache option sets
+	/**
+	 * @var array $product_options Cache product options retrieved from BigCommerce, so we don't repeat calls for each variant
+	 */
+	private $product_options;
 
+	/**
+	 * @var array $product_options Cache option sets retrieved from BigCommerce, so we don't repeat calls for each variant
+	 */
+	private $option_sets;
+
+	/**
+	 * @var array $client Http client object to perform additional requests
+	 */
 	private $client;
+
+	/**
+	 * @var array $request_data Data about the request that we've been sent
+	 */
 	private $request_data;
 
 	public function __construct($data, $type='bc',$client,$request_data) {

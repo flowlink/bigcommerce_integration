@@ -4,6 +4,9 @@ namespace Sprout\Wombat\Entity;
 
 class Inventory {
 
+	/**
+	 * @var array $data Hold the JSON object data retrieved from the source
+	 */
 	protected $data;
 
 	public function __construct($data, $type='bc') {
