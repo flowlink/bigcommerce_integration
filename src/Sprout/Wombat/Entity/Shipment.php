@@ -99,7 +99,7 @@ class Shipment {
 
 		//retrieve shipping addresses already associated with the order_id
 		$wombat_obj = (object)$this->data['wombat'];
-		$order_id = $this->getBCID();
+		$order_id = $this->getBCID('order');
 		
 		$response = $client->get("orders/$order_id/shipping_addresses");
 					
@@ -153,13 +153,21 @@ class Shipment {
 		}
 	}
 
-	public function getBCID() {
-		if(!empty($this->data['wombat']['bigcommerce_id'])) {
-			return $this->data['wombat']['bigcommerce_id'];
-		}
+	public function getBCID($fetch = "shipment") {
+		
 
 		$hash = $this->request_data['hash'];
-		$id = $this->data['wombat']['id'];
+		if($fetch == 'shipment') {
+			if(!empty($this->data['wombat']['bigcommerce_id'])) {
+				return $this->data['wombat']['bigcommerce_id'];
+			}
+			$id = $this->data['wombat']['id'];
+		} else {
+			if(!empty($this->data['wombat']['bigcommerce_order_id'])) {
+				return $this->data['wombat']['bigcommerce_order_id'];
+			}
+			$id = $this->data['wombat']['order_id'];	
+		}
 
 		if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
 			$id = str_replace($hash.'_', '', $id);
