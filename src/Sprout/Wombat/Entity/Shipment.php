@@ -128,6 +128,9 @@ class Shipment {
 				
 			}
 		}
+		if(empty($this->data['wombat']['_order_address_id'])) {
+			throw new \Exception($request_data['request_id'],":::::Unable to find the provided shipment address",500);
+		}
 
 		// get order products for the order_product_id
 		$response = $client->get("orders/$order_id/products");
