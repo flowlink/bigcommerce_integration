@@ -284,24 +284,26 @@ class Customer {
 
 			$options['body'] = (string)json_encode($billing_address);
 			
-			try {
-				
-				if(!$id || (empty($wombat_obj->billing_address['bigcommerce_id']) && count($addresses) == 0)) {
-					//this customer never existed, or the customer does but this address doesn't seem to
-					$response = $client->post($path,$options);
-				} else {
+			if(!$id || (empty($wombat_obj->billing_address['bigcommerce_id']) && count($addresses) == 0)) {
+				//this customer never existed, or the customer does but this address doesn't seem to				
+				$path = "customers/$bc_id/addresses";
+				$method = "POST";
+			} else {
 
-					//if we've been passed an existing address id, use that
-					if(!empty($wombat_obj->billing_address['bigcommerce_id'])) {
-						$address_id = $wombat_obj->billing_address['bigcommerce_id'];
-					} else if(count($addresses) > 0) {
-						//we've found an existing address, assume it's billing
-						$address_id = $addresses[0]->id;
-					}
-					$path = "customers/$bc_id/addresses/$address_id";
-
-					$response = $client->put($path,$options);
+				//if we've been passed an existing address id, use that
+				if(!empty($wombat_obj->billing_address['bigcommerce_id'])) {
+					$address_id = $wombat_obj->billing_address['bigcommerce_id'];
+				} else if(count($addresses) > 0) {
+					//we've found an existing address, assume it's billing
+					$address_id = $addresses[0]->id;
 				}
+				$path = "customers/$bc_id/addresses/$address_id";
+				$method = "PUT";
+			}
+
+			try {
+				$request = $client->createRequest($method,$path,$options);
+				$response = $client->send($request);
 			}
 			catch(\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".(!$id?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
@@ -331,23 +333,27 @@ class Customer {
 
 			$options['body'] = (string)json_encode($shipping_address);
 			
-			try {
-				if(!$id || (empty($wombat_obj->shipping_address['bigcommerce_id']) && count($addresses) < 2)) {
-					//this customer never existed, or the customer does but this address doesn't seem to
-					$response = $client->post($path,$options);
-				} else {
-						
-					//if we've been passed an existing address id, use that
-					if(!empty($wombat_obj->shipping_address['bigcommerce_id'])) {
-						$address_id = $wombat_obj->shipping_address['bigcommerce_id'];
-					} else if(count($addresses) > 1) {
-						//we've found an existing address, assume it's shipping
-						$address_id = $addresses[1]->id;
-					}
-					$path = "customers/$id/addresses/$address_id";
+			if(!$id || (empty($wombat_obj->shipping_address['bigcommerce_id']) && count($addresses) < 2)) {
+				//this customer never existed, or the customer does but this address doesn't seem to
+				$path = "customers/$bc_id/addresses";
+				$method = "POST";
+			} else {
 					
-					$response = $client->put($path,$options);
+				//if we've been passed an existing address id, use that
+				if(!empty($wombat_obj->shipping_address['bigcommerce_id'])) {
+					$address_id = $wombat_obj->shipping_address['bigcommerce_id'];
+				} else if(count($addresses) > 1) {
+					//we've found an existing address, assume it's shipping
+					$address_id = $addresses[1]->id;
 				}
+				$path = "customers/$bc_id/addresses/$address_id";
+				$method = "PUT";
+				
+			}
+
+			try {
+				$request = $client->createRequest($method,$path,$options);
+				$response = $client->send($request);
 			}
 			catch(\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".(!$id?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
