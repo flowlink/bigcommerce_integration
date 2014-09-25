@@ -250,7 +250,8 @@ class Customer {
 		}
 		
 		//fetch any existing addresses
-		$path = "customers/$id/addresses";
+		$path = "customers/$bc_id/addresses";
+		
 		$addresses = array();
 		try {
 			$response = $client->get($path);
@@ -258,6 +259,7 @@ class Customer {
 		catch(\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching customer address:::::".$e->getResponse()->getBody(),500);
 		}
+		
 		if($response->getStatusCode() != 204) {
 			$addresses = $response->json(array('object'=>TRUE));
 		}
@@ -283,6 +285,7 @@ class Customer {
 			$options['body'] = (string)json_encode($billing_address);
 			
 			try {
+				
 				if(!$id || (empty($wombat_obj->billing_address['bigcommerce_id']) && count($addresses) == 0)) {
 					//this customer never existed, or the customer does but this address doesn't seem to
 					$response = $client->post($path,$options);
