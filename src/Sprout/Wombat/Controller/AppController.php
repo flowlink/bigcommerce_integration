@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * This controller handles general app functions
+ *
+ * Primarily, this means handling authorization callbacks for BigCommerce's oAuth model
+ * Since we're using the legacy API at the moment it's not used.
+ */
 namespace Sprout\Wombat\Controller;
 
 use Silex\Application;
