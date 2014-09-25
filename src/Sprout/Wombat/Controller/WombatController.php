@@ -372,7 +372,11 @@ class WombatController {
 		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
-		$response = $client->get('customers', array('query' => $request_data['parameters']));
+		try {
+			$response = $client->get('customers', array('query' => $request_data['parameters']));
+		} catch (\Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching customer data:::::".$e->getResponse()->getBody());
+		}
 		$response_status = intval($response->getStatusCode());
 
 		// Response
@@ -835,7 +839,7 @@ class WombatController {
 				case 'min_date_last_imported':
 				case 'max_date_last_imported':
 					//for products, transform any ISO formatted dates to RFC2822
-					if($context == '/get_products') {
+					if($context == '/get_products' || $context == '/get_customers') {
 						date_default_timezone_set('UTC');
 						$date = date(\DateTime::RFC2822,strtotime($value));
 						$parameters[$key] = $date;
