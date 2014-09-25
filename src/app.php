@@ -90,7 +90,7 @@ $app->error(function (\Exception $e, $code) use($app) {
     $parts = explode(":::::", $e->getMessage());
 
     $message = isset($parts[1]) ? $parts[1] : NULL;
-    $external_response = (count($parts)>2)?json_decode($parts[2]):false;
+    $external_response = (count($parts)>2)?json_decode($parts[2]):array();
     //echo "EXT: ".print_r($external_response,true).PHP_EOL;
 
     $additional_details = "Additional details: ";
