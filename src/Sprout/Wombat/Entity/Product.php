@@ -20,9 +20,15 @@ class Product {
 	private $product_options;
 
 	/**
-	 * @var array $product_options Cache option sets retrieved from BigCommerce, so we don't repeat calls for each variant
+	 * @var array $option_sets Cache option sets retrieved from BigCommerce, so we don't repeat calls for each variant
 	 */
 	private $option_sets;
+
+
+	/**
+	 * @var array $options Cache options & values retrieved from BigCommerce, so we don't repeat calls for each variant
+	 */
+	private $options;
 
 	/**
 	 * @var array $client Http client object to perform additional requests
@@ -252,7 +258,7 @@ class Product {
 		if($brand_id) {
 			$bc_obj->brand_id = $brand_id;
 		}
-		
+		echo print_r($bc_obj,true).PHP_EOL;
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
@@ -486,31 +492,72 @@ class Product {
 		$client = $this->client;
 		$request_data = $this->request_data;
 		$category_ids = array(); 
-
+		
 		foreach($taxons as $taxon) {
 			if(strtoupper($taxon[0]) == 'CATEGORIES') {
+
+				//for the highest level category, it shouldn't have a parent
+				$parent_id = 0;
 				
-				$categoryname = $taxon[count($taxon)-1];
-				
-				try {
-						$response = $client->get("categories",array('query'=>array('name'=>$categoryname)));
-					} catch (Exception $e) {
-						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
+				//Cycle through the category hierarchy we've been given and create each level if it doesn't exist
+				for($i = 1; $i<count($taxon); $i++) {
+					$categoryname = $taxon[$i];
+
+					try {
+						$response = $client->get("categories",array('query'=>array('name'=>$categoryname,'parent_id'=>$parent_id)));
+					} catch (\Exception $e) {
+						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching categories for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
-					
+
 					if($response->getStatusCode() == 204) {
-						// @todo : create category?
+
+						$new_category = (object) array(
+							'parent_id' => $parent_id,
+							'name' => $categoryname,
+							);
+						$client_options = array(
+							'body' => json_encode($new_category),
+							);
+
+						try {
+							$response = $client->post('categories',$client_options);
+						} catch (\Exception $e) {
+							throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while creating category $categoryname for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
+						}
+						$category = $response->json(array('object'=>TRUE));
+
 					} else if($response->getStatusCode() == 200) {
 						$categories = $response->json(array('object'=>TRUE));
 						$category = $categories[0];
+					}
+
+					if($i == count($taxon)-1) {
 						$category_ids[] = $category->id;
 					}
+					$parent_id = $category->id;
+				}
+				
+				
+
+					// try {
+					// 	$response = $client->get("categories",array('query'=>array('name'=>$categoryname)));
+					// } catch (Exception $e) {
+					// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
+					// }
+					
+					// if($response->getStatusCode() == 204) {
+						
+					// } else if($response->getStatusCode() == 200) {
+					// 	$categories = $response->json(array('object'=>TRUE));
+					// 	$category = $categories[0];
+					// 	$category_ids[] = $category->id;
+					// }
 			}
 		}
 
-		if(empty($category_ids)) {
-			$category_ids[] = 20; // @todo: figure out a default
-		}
+		// if(empty($category_ids)) {
+		// 	$category_ids[] = 20; // @todo: figure out a default
+		// }
 
 		return $category_ids;
 	}
@@ -536,10 +583,19 @@ class Product {
 					try {
 						$response = $client->get("brands",array('query'=>array('name'=>$brandname)));
 					} catch (Exception $e) {
-						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while pushing resource \"properties/custom_fields\" for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
+						throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching brands for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 					}
 					if($response->getStatusCode() == 204) {
-						//create brand?
+						$new_brand = (object) array(
+							'name' => $brandname,
+							);
+						try {
+							$response = $client->post("brands",array('body'=>json_encode($new_brand)));
+						} catch (Exception $e) {
+							throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while creating brand: $brandname for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
+						}
+						$brand = $response->json(array('object'=>TRUE));
+						$brand_id = $brand->id;
 					} else if($response->getStatusCode() == 200) {
 						$brands = $response->json(array('object'=>TRUE));
 						$brand = $brands[0];
@@ -564,6 +620,7 @@ class Product {
 
 		//uppercase the Wombat options for matching
 		$options = array_map("strtoupper",$wombat_obj->options);
+		sort($options); //sort the items so we can compare 
 		
 		//for each option set, construct an array of option names to match against the Wombat array
 		foreach ($option_sets as $option_set) {
@@ -572,13 +629,50 @@ class Product {
 				foreach($option_set->options as $set_option)	{
 					$set_options[] = strtoupper($set_option->display_name);
 				}
+				
+				sort($set_options);
+
+				if($set_options == $options) {
+					$output = $option_set->id;
+				}
 			}
-			if($set_options == $options) {
-				$output = $option_set->id;
-			}
+		}
+
+		if(empty($output)) {
+			$output = $this->createOptionSet();
 		}
 		
 		return $output;	
+	}
+
+	/**
+	 * Pull all option names and variant option values from Wombat data and create a new option set with them
+	 */
+	public function createOptionSet() {
+		$wombat_obj = (object) $this->data['wombat'];
+		$client = $this->client;
+		$request_data = $this->request_data;
+
+		$options = $wombat_obj->options;
+		$variants = $wombat_obj->variants;
+		$bigcommerce_options = $this->getOptions();
+
+		//we need a name for the option set: set it to the combined names of the options
+		$option_set_name = implode('_', $options);
+
+		//create the option set & get its ID so we can add options to it
+		// try {
+			$new_option_set = (object) array(
+				'name' => $option_set_name,
+				);
+			$client_options = array(
+				'body'=> json_encode($new_option_set),
+				);
+			echo "NEW: ".print_r($client_options['body'],true).PHP_EOL;
+			//$client->post
+		// }
+
+		return 0;
 	}
 
 	/**
@@ -616,6 +710,36 @@ class Product {
 			}
 		}
 		return $this->option_sets;
+	}
+
+	/**
+	 * Get all options & values from the store
+	 */
+	public function getOptions() {
+
+		//if we haven't previously fetched the store options, do so
+		if(empty($this->options)) {
+			$client = $this->client;
+			$request_data = $this->request_data;
+			$options = array();
+			
+			try {
+				$response = $client->get('options');
+			} catch (\Exception $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching store options:::::".$e->getResponse()->getBody(),500);
+			}
+			echo "RESPONSE: ".$response->getStatusCode().PHP_EOL;
+
+			if($response->getStatusCode() != 204) {
+				$options = $response->json(array('object'=>TRUE));
+
+				echo "OPTIONS: ".print_r($options,true).PHP_EOL;
+
+			}
+			
+		}
+
+		return $this->options;
 	}
 
 	/**
