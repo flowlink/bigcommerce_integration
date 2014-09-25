@@ -13,6 +13,7 @@ namespace Sprout\Wombat\Controller;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
@@ -407,14 +408,36 @@ class WombatController {
 		}
 	}
 
+	public function pushCustomerAction(Request $request, Application $app) {
+
+		$request_data = $this->initRequestData($request,$app);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('customer');
+
+		$customer = new Customer($wombat_data,'wombat',$client,$request_data);
+		$result = $customer->push();
+
+		$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => $result,
+		);
+		
+		return $app->json($response,200);
+
+	}
+
 	public function postCustomerAction(Request $request, Application $app) {
 		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
 		$wombat_data = $request->request->get('customer');
+
 		
 		$bcModel = new Customer($wombat_data,'wombat',$client, $request_data);
+		
 		$bc_data = $bcModel->getBigCommerceObject('create');
 
 		
@@ -874,7 +897,10 @@ class WombatController {
 			'base_url' => rtrim($connection->path,'/').'/',
 			'defaults' => array(
 				'auth' => array($connection->username, $connection->token),
-				'headers' => array( 'Accept' => 'application/json' )
+				'headers' => array( 
+					'Accept' => 'application/json',
+					'Content-Type'=>'application/json',
+				 ),
 			)
 		));
 		
