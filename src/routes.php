@@ -56,10 +56,6 @@ $app->post('/update_customer', 'Sprout\Wombat\Controller\WombatController::pushC
 		//->before($wombat_auth)
 		->before($wombat_includes_bc_auth);
 
-		$app->post('/push_customer', 'Sprout\Wombat\Controller\WombatController::pushCustomerAction')
-		//->before($wombat_auth)
-		->before($wombat_includes_bc_auth);
-
 //cancel
 $app->post('/cancel_order', 'Sprout\Wombat\Controller\WombatController::cancelOrderAction')
 		//->before($wombat_auth)
