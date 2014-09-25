@@ -31,6 +31,48 @@ class Customer {
 	}
 
 	/**
+	 * Push this data to BigCommerce (BC)
+	 */
+	public function push() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+		
+		$id = $this->getBCID();
+
+		//format our data for BC	
+		$bc_data = $this->getBigCommerceObject();
+		$options = array(
+			'body' => (string)json_encode($bc_data),
+			//'debug'=>fopen('debug.txt', 'w')
+			);
+
+		//if there's an existing BC ID, then update
+		if($id) {
+			try {
+				$response = $client->put("customers/$id",$options);
+			} catch (RequestException $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
+			}
+
+			$this->pushAttachedResources($id);
+		} else {
+
+			//no ID found, so create a new customer
+			try {
+				$response = $client->post("customers",$options);
+			} catch (RequestException $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
+			}
+
+			$this->pushAttachedResources($id);
+		}
+
+		$result = "The customer $bc_data->first_name $bc_data->last_name was ".($id ? 'updated' : 'created')." in BigCommerce";
+		return $result;
+
+	}
+
+	/**
 	 * Get a Wombat-formatted set of data from a BigCommerce one.
 	 */
 	public function getWombatObject() {
@@ -64,22 +106,23 @@ class Customer {
 				'phone' 		=> $address->phone,
 				'bigcommerce_id' 			=> $address->id,
 			);
-		}
+		
 
-		if(!empty($bc_obj->_addresses) && count($bc_obj->_addresses) > 1) {
-			$address = $bc_obj->_addresses[1];
-			$wombat_obj->shipping_address = (object) array(
-				'firstname' => $address->first_name,
-				'lastname' 	=> $address->last_name,
-				'address1' 	=> $address->street_1,
-				'address2' 	=> $address->street_2,
-				'zipcode' 	=> $address->zip,
-				'city' 			=> $address->city,
-				'state' 		=> $address->state,
-				'country' 	=> $address->country_iso2,
-				'phone' 		=> $address->phone,
-				'bigcommerce_id' 			=> $address->id,
-			);
+			if(count($bc_obj->_addresses) > 1) {
+				$address = $bc_obj->_addresses[1];
+				$wombat_obj->shipping_address = (object) array(
+					'firstname' => $address->first_name,
+					'lastname' 	=> $address->last_name,
+					'address1' 	=> $address->street_1,
+					'address2' 	=> $address->street_2,
+					'zipcode' 	=> $address->zip,
+					'city' 			=> $address->city,
+					'state' 		=> $address->state,
+					'country' 	=> $address->country_iso2,
+					'phone' 		=> $address->phone,
+					'bigcommerce_id' 			=> $address->id,
+				);
+			}
 		}
 
 		$this->data['wombat'] = $wombat_obj;
@@ -89,7 +132,7 @@ class Customer {
 	/**
 	 * Get a BigCommerce-formatted set of data from a Wombat one.
 	 */
-	public function getBigCommerceObject($action = 'create') {
+	public function getBigCommerceObject() {
 		if(isset($this->data['bc']))
 			return $this->data['bc'];
 		else if(isset($this->data['wombat']))
@@ -115,30 +158,29 @@ class Customer {
 	 * Get the BigCommerce ID for a customer by fetching customers filtered by email address
 	 */
 	public function getBCID() {
-		$client = $this->client;
-		$request_data = $this->request_data;
+		
+		$id = 0;
 
 		if(!empty($this->data['wombat']['bigcommerce_id'])) {
-			return $this->data['wombat']['bigcommerce_id'];
+			$id = $this->data['wombat']['bigcommerce_id'];
 		}
 
-		// //if no BCID stored, query BC for the email
-		// $email = $this->data['wombat']['email'];
-		
-		// try {
-		// 	$response = $client->get('customers',array('query'=>array('email'=>$email)));
-		// 	$data = $response->json(array('object'=>TRUE));
+		//if bigcommerce_id isn't available, check whether the Wombat ID is our hash_id format:
+		if(!$id) {
+			$hash = $this->request_data['hash'];
+			$wombat_id = $this->data['wombat']['id'];
+
+			if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
+				$id = str_replace($hash.'_', '', $wombat_id);
 			
-		// 	return $data[0]->id;
-		// } catch (Exception $e) {
-		// 	throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching resource \"$resource_name\" for product \"".$this->data['bc']->sku."\":::::".$e->getMessage()->getBody(),500);
-		// }
-		$hash = $this->request_data['hash'];
-		$id = $this->data['wombat']['id'];
-
-		if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
-			$id = str_replace($hash.'_', '', $id);
+			}
 		}
+
+		// if neither of the above BCID stored, query BC for the email
+		if(!$id) {
+			$id = $this->getBCCustomerByEmail();
+		}
+				
 		return $id;
 	}
 
@@ -193,18 +235,34 @@ class Customer {
 	 * Send data to BigCommerce that's handled separately from the main customer object:
 	 * addresses
 	 */
-	public function pushAttachedResources($action = 'create') {
+	public function pushAttachedResources($id) {
 		$client = $this->client;
 		$request_data = $this->request_data;
 		$wombat_obj = (object) $this->data['wombat'];
 
-		//get the customer ID via their email
-		$id = $this->getBCID($client,$request_data);
+		//if we haven't been passed an ID, the customer has just been created. Fetch their ID
+		if(!$id) {
+			$bc_id = $this->getBCCustomerByEmail();
+		} else {
+
+			//otherwise, we're doing an update on an existing customer ID
+			$bc_id = $id;
+		}
 		
+		//fetch any existing addresses
 		$path = "customers/$id/addresses";
-		$options = array(
-			'headers'=>array('Content-Type'=>'application/json'),
-			);
+		$addresses = array();
+		try {
+			$response = $client->get($path);
+		}
+		catch(\Exception $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching customer address:::::".$e->getResponse()->getBody(),500);
+		}
+		if($response->getStatusCode() != 204) {
+			$addresses = $response->json(array('object'=>TRUE));
+		}
+		
+		$options = array();
 
 		if(!empty($wombat_obj->billing_address)) {
 			$billing_address = (object) array(
@@ -225,19 +283,28 @@ class Customer {
 			$options['body'] = (string)json_encode($billing_address);
 			
 			try {
-				if($action == 'create') {
+				if(!$id || (empty($wombat_obj->billing_address['bigcommerce_id']) && count($addresses) == 0)) {
+					//this customer never existed, or the customer does but this address doesn't seem to
 					$response = $client->post($path,$options);
-				} else if($action == 'update') {
-					$address_id = $wombat_obj->billing_address['bigcommerce_id'];
-					$path = "customers/$id/addresses/$address_id";
+				} else {
+
+					//if we've been passed an existing address id, use that
+					if(!empty($wombat_obj->billing_address['bigcommerce_id'])) {
+						$address_id = $wombat_obj->billing_address['bigcommerce_id'];
+					} else if(count($addresses) > 0) {
+						//we've found an existing address, assume it's billing
+						$address_id = $addresses[0]->id;
+					}
+					$path = "customers/$bc_id/addresses/$address_id";
 
 					$response = $client->put($path,$options);
 				}
 			}
 			catch(\Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".(!$id?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
 			}
 			
+			//Storing the returned address ID - won't currently be used, but maybe later...
 			$bc_address = $response->json(array('object'=>TRUE));
 			$wombat_obj->billing_address['bigcommerce_id'] = $bc_address->id;
 		}
@@ -262,17 +329,25 @@ class Customer {
 			$options['body'] = (string)json_encode($shipping_address);
 			
 			try {
-				if($action == 'create') {
+				if(!$id || (empty($wombat_obj->shipping_address['bigcommerce_id']) && count($addresses) < 2)) {
+					//this customer never existed, or the customer does but this address doesn't seem to
 					$response = $client->post($path,$options);
-				} else if($action == 'update') {
-					$address_id = $wombat_obj->shipping_address['bigcommerce_id'];
+				} else {
+						
+					//if we've been passed an existing address id, use that
+					if(!empty($wombat_obj->shipping_address['bigcommerce_id'])) {
+						$address_id = $wombat_obj->shipping_address['bigcommerce_id'];
+					} else if(count($addresses) > 1) {
+						//we've found an existing address, assume it's shipping
+						$address_id = $addresses[1]->id;
+					}
 					$path = "customers/$id/addresses/$address_id";
 					
 					$response = $client->put($path,$options);
 				}
 			}
 			catch(\Exception $e) {
-				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".($action=='create'?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while ".(!$id?'creating':'updating')." customer address:::::".$e->getResponse()->getBody(),500);
 			}
 
 			$bc_address = $response->json(array('object'=>TRUE));
@@ -587,5 +662,30 @@ class Customer {
 		$hash = $this->request_data['hash'];
 		
 		return $hash.'_'.$id;
+	}
+
+	/**
+	 * Get an existing customer's ID from BigCommerce by email
+	 */
+	public function getBCCustomerByEmail() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+
+		$id = 0;
+		$email = $this->data['wombat']['email'];
+		
+		try {
+			$response = $client->get('customers',array('query'=>array('email'=>$email)));
+			$data = $response->json(array('object'=>TRUE));
+			
+			//if results not empty
+			if($response->getStatusCode() != 204) {
+				$id = $data[0]->id;
+			}
+		} catch (\Exception $e) {
+			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce while fetching BigCommerce Customer ID.:::::".$e->getMessage()->getBody(),500);
+		}
+
+		return $id;
 	}
 }
