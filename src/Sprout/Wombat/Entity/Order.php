@@ -99,7 +99,9 @@ class Order {
 				'product_id' => empty($bc_prod->sku) ? $bc_prod->product_id : $bc_prod->sku,
 				'name' => $bc_prod->name,
 				'quantity' => $bc_prod->quantity,
-				'price' => (float) number_format($bc_prod->price_ex_tax, 2, '.', '')
+				'price' => (float) number_format($bc_prod->price_ex_tax, 2, '.', ''),
+				'bigcommerce_id' => $bc_prod->id,
+				'bigcommerce_product_id' => $bc_prod->product_id,
 			);
 			
 			// add chosen product options to line item
