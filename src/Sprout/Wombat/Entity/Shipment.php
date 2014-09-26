@@ -119,7 +119,7 @@ class Shipment {
 		try {
 			$response = $client->get("orders/$order_id/shipping_addresses");
 		} catch (\Exception $e) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce while retrieving shipping addresses:::::".$e->getResponse()->getBody(),500);
+			$this->doException($e,'retrieving shipping addresses');
 		}
 					
 		if(intval($response->getStatusCode()) === 200)
@@ -150,14 +150,14 @@ class Shipment {
 		}
 		
 		if(empty($this->data['wombat']['_order_address_id'])) {
-			throw new \Exception($request_data['request_id'].":::::Unable to find the provided shipment address",500);
+			$this->doException($e,'matching provided shipping address');
 		}
 
 		// get order products for the order_product_id
 		try {
 			$response = $client->get("orders/$order_id/products");
 		} catch (\Exception $e) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce while retrieving line items:::::".$e->getResponse()->getBody(),500);
+			$this->doException($e,'retrieving line items');
 		}
 
 		if(intval($response->getStatusCode()) === 200)
@@ -213,5 +213,13 @@ class Shipment {
 		$hash = $this->request_data['hash'];
 		
 		return $hash.'_'.$id;
+	}
+
+	/**
+	 * Thow an exception in our format
+	 */
+	protected function doException($e,$action) {
+		$wombat_obj = (object) $this->data['wombat'];
+		throw new \Exception($this->request_data['request_id'].":::::Error received from BigCommerce while {$action} for shipment {$wombat_obj->id}:::::".$e->getResponse()->getBody(),500);
 	}
 }

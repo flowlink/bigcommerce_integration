@@ -1119,6 +1119,7 @@ class Product {
 	 * Thow an exception in our format
 	 */
 	protected function doException($e,$action) {
+		$wombat_obj = (object) $this->data['wombat'];
 		throw new \Exception($this->request_data['request_id'].":::::Error received from BigCommerce while $action for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
 	}
 	
