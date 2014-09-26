@@ -45,7 +45,7 @@ class Order {
 		$wombat_obj = (object) array(
 			'id' => $this->getHashId($bc_obj->id),
 			'status' => strtolower($bc_obj->status),
-			'channel' => 'bigcommerce_'.$this->request_data['hash'].'_'.is_null($bc_obj->external_source) ? $bc_obj->order_source : $bc_obj->external_source,
+			'channel' => 'bigcommerce_'.$this->request_data['hash'].'_'.(is_null($bc_obj->external_source) ? $bc_obj->order_source : $bc_obj->external_source),
 			'email' => $bc_obj->billing_address->email,
 			'currency' => $bc_obj->currency_code,
 			'placed_on' => date('c',strtotime($bc_obj->date_created)),
