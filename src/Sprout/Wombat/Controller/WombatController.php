@@ -116,11 +116,11 @@ class WombatController {
 		$bcModel->pushAttachedResources();
 
 
-		if($wombat_request = $this->initWombatData($request,$app)) {
-			$wombatClient = $this->wombatClient($wombat_request);
-			//$bcModel->addWombatClient();
-			$bcModel->pushBigCommerceIDs($wombatClient,$request_data);
-		}
+		// if($wombat_request = $this->initWombatData($request,$app)) {
+		// 	$wombatClient = $this->wombatClient($wombat_request);
+		// 	//$bcModel->addWombatClient();
+		// 	$bcModel->pushBigCommerceIDs($wombatClient,$request_data);
+		// }
 
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
 		// make it not do that or catch an exception rather than checking code
