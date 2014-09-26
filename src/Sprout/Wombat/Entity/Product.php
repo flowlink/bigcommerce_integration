@@ -713,7 +713,7 @@ class Product {
 		$new_option = (object) array(
 			"name" 					=> $name,
   		"display_name" 	=> ucfirst(strtolower($name)),
-  		"type" 					=> "RT" // @todo: this gives us a basic dropdown menu - do we want to be able to decide this?
+  		"type" 					=> "S" // @todo: this gives us a basic dropdown menu - do we want to be able to decide this?
 			);
 
 		$client_options = array(
@@ -929,7 +929,7 @@ class Product {
 			}
 			$sku_options[] = (object)$sku_option;
 		}
-		
+
 		// foreach($product_options as $product_option) {
 
 		// 	//If we haven't retrieved additional option info & values, do so
