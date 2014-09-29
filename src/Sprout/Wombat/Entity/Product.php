@@ -1002,12 +1002,17 @@ class Product {
 		
 		try {
 			$response = $client->get('products',array('query'=>array('sku'=>$sku)));
-			$data = $response->json(array('object'=>TRUE));
-
-			return $data[0]->id;
 		} catch (\Exception $e) {
 			$this->doException($e,'fetching bigcommerce_id');
 		}
+
+		if($response->getStatusCode() == 204) {
+			$this->doException(null, "No product could be found for ID: {$sku}, and no bigcommerce_id was provided.");
+		}
+
+		$data = $response->json(array('object'=>TRUE));
+
+		return $data[0]->id;
 	}
 	
 	/**
