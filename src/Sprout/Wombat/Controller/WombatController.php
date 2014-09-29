@@ -195,8 +195,10 @@ class WombatController {
 
 		$wombat_data = $request->request->get('inventory');
 
-		$bcModel = new Inventory($wombat_data,'wombat');
+		$bcModel = new Inventory($wombat_data,'wombat',$client,$request_data);
+		$bcModel->checkInventoryTracking();
 		$bc_data = $bcModel->getBigCommerceObject('set_inventory');
+		$bc_id = $bcModel->getBCID();
 
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
@@ -205,8 +207,10 @@ class WombatController {
 			);
 
 		try {
-			$response = $client->put('products/'.$wombat_data['product_id'],$options);
+			$response = $client->put("products/{$bc_id}",$options);
 		} catch (RequestException $e) {
+			//print_r(get_object_vars($e->getResponse()));
+			//echo "URL: ".print_r($e->getResponse()->getEffectiveUrl(),true).PHP_EOL;
 			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 		}
 		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,

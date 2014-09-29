@@ -96,7 +96,10 @@ $app->error(function (\Exception $e, $code) use($app) {
     $external_response = (count($parts)>2)?json_decode($parts[2]):array();
     //echo "EXT: ".print_r($external_response,true).PHP_EOL;
 
-    $additional_details = "Additional details: ";
+    $additional_details = "";
+    if(count($external_response)) {
+        $additional_details .= " Additional details: ";
+    }
     foreach ($external_response as $key => $ext) {
         $additional_details .= "$key : ";
         if(isset($ext->status)) {
@@ -118,7 +121,7 @@ $app->error(function (\Exception $e, $code) use($app) {
 
     $response = array(
     	'request_id' => isset($parts[0]) ? $parts[0] : NULL,
-    	'summary' => $message." ".$additional_details,
+    	'summary' => $message.$additional_details,
     	);
     	
     return $app->json($response,$code); 
