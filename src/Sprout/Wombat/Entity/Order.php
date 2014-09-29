@@ -310,13 +310,9 @@ class Order {
 				case 'CHECK':
 				case 'PAY IN STORE':
 				case 'CASH ON DELIVERY':
-					$status = "Pending";
-					break;
 				case 'CASH':
-					$status = "Completed";
-					break;
 				default:
-					$status = "Pending"; // @todo : Default status?
+					$status = "Completed";
 					break;
 			}
 		}
