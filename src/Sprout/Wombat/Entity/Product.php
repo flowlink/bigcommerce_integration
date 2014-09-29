@@ -108,9 +108,8 @@ class Product {
 			$images = array();
 			foreach($wombat_obj->images as $image) {
 				// echo "image: ".print_r($image,true).PHP_EOL;
-				$image = (object) array(
-					'bigcommerce_id' => $image['bigcommerce_id'],
-					);
+				$image = (object) $image;
+				$image->dimensions = (object) $image->dimensions;
 				$images[] = $image;
 			}
 			$product->images = $images;
@@ -121,10 +120,16 @@ class Product {
 		if(!empty($wombat_obj->variants)) {
 			$variants = array();
 			foreach ($wombat_obj->variants as $variant) {
-				$variant = (object) array(
-					'bigcommerce_id'=> $variant['bigcommerce_id'],
-					'bigcommerce_rule_id'=> $variant['bigcommerce_rule_id'],
-					);
+				// $variant = (object) array(
+				// 	'bigcommerce_id'=> $variant['bigcommerce_id'],
+				// 	'bigcommerce_rule_id'=> $variant['bigcommerce_rule_id'],
+				// 	);
+				$variant = (object) $variant;
+				$variant->options = (object) $variant->options;
+				foreach($variant->images as $image) {
+					$image = (object) $image;
+					$image->dimensions = (object) $image->dimensions;
+				}
 				$variants[] = $variant;
 			}
 			$product->variants = $variants;
