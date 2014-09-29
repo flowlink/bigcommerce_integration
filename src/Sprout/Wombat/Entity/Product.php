@@ -287,7 +287,7 @@ class Product {
 				}
 				$data = (object) array(
 					'image_file' 		=> $this->processImageURL($image['url']),
-					'description' 	=> $image['title'],
+					'description' 	=> (empty($image['title']))?$wombat_obj->name:$image['title'],
 					'is_thumbnail' 	=> ($image['type'] == 'thumbnail')?'true':'false',
 					'sort_order'		=> $image['position'],
 					);
@@ -353,7 +353,7 @@ class Product {
 				$data = (object) array(
 					'sku' => 							$variant['sku'],
 					'cost_price' => 			$variant['cost_price'],
-					'inventory_level' =>	$variant['quantity'], // @todo: only if stock tracking for parent product is set to 'sku'
+					'inventory_level' =>	(empty($variant['quantity']))? 1 : $variant['quantity'], // @todo: only if stock tracking for parent product is set to 'sku'
 					);
 
 				
@@ -935,6 +935,9 @@ class Product {
 					$sku_option['option_value_id'] = $value_id;
 				}
 			}
+			if(empty($sku_option['product_option_id']) || empty($sku_option['option_value_id'])) {
+				$this->doException(null,"Could not match variant options against BigCommerce options. Check that the option names are not misspelt.");
+			}
 			// echo "SKU OPT: ".print_r($sku_option,true).PHP_EOL;
 			$sku_options[] = (object)$sku_option;
 		}
@@ -1134,7 +1137,15 @@ class Product {
 	 */
 	protected function doException($e,$action) {
 		$wombat_obj = (object) $this->data['wombat'];
-		throw new \Exception($this->request_data['request_id'].":::::Error received from BigCommerce while $action for product \"".$wombat_obj->sku."\":::::".$e->getResponse()->getBody(),500);
+
+		$response_body = "";
+		if(!is_null($e)) {
+			$response_body = ":::::".$e->getResponse()->getBody();
+			$message = ":::::Error received from BigCommerce while {$action} for Product: {$wombat_obj->id}";
+		} else {
+			$message = ":::::".$action." Product: {$wombat_obj->sku}";
+		}
+		throw new \Exception($this->request_data['request_id'].$message.$response_body,500);
 	}
 	
 }
