@@ -107,7 +107,7 @@ class Product {
 		if(!empty($wombat_obj->images)) {
 			$images = array();
 			foreach($wombat_obj->images as $image) {
-				echo "image: ".print_r($image,true).PHP_EOL;
+				// echo "image: ".print_r($image,true).PHP_EOL;
 				$image = (object) array(
 					'bigcommerce_id' => $image['bigcommerce_id'],
 					);
