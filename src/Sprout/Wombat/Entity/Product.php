@@ -121,20 +121,16 @@ class Product {
 		if(!empty($wombat_obj->variants)) {
 			$variants = array();
 			foreach ($wombat_obj->variants as $variant) {
-				$variant = (object) $variant;
-				$images = array();
-				foreach ($variant->images as $image) {
-					$image = (object)$image;
-					$image->dimensions = (object) $image->dimensions;
-					$images[] = $image;
-				}
-				$variant->images = $images;
+				$variant = (object) array(
+					'bigcommerce_id'=> $variant->bigcommerce_id,
+					'bigcommerce_rule_id'=> $variant->bigcommerce_rule_id,
+					);
 				$variants[] = $variant;
 			}
 			$product->variants = $variants;
 		}
 
-		return json_encode($product);
+		return $product;
 
 		
 	}
