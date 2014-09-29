@@ -67,9 +67,22 @@ class Customer {
 			$this->pushAttachedResources($id);
 		}
 
-		$result = "The customer $bc_data->first_name $bc_data->last_name was ".($id ? 'updated' : 'created')." in BigCommerce";
+		$result['message'] = "The customer $bc_data->first_name $bc_data->last_name was ".($id ? 'updated' : 'created')." in BigCommerce";
+		$result['objects'] = array($this->getWombatResponse());
+
 		return $result;
 
+	}
+
+	/**
+	 * Format the Wombat object to return to Wombat after creating a new object in BC
+	 */
+	public function getWombatResponse() {
+		$wombat_obj = (object) $this->data['wombat'];
+		$wombat_obj->billing_address 	= (object) $wombat_obj->billing_address;
+		$wombat_obj->shipping_address = (object) $wombat_obj->shipping_address;
+
+		return $wombat_obj;
 	}
 
 	/**
@@ -109,7 +122,7 @@ class Customer {
 		
 
 			if(count($bc_obj->_addresses) > 1) {
-				$address = $bc_obj->_addresses[1];
+				$address = $bc_obj->_addresses[count($bc_obj->_addresses)-1];
 				$wombat_obj->shipping_address = (object) array(
 					'firstname' => $address->first_name,
 					'lastname' 	=> $address->last_name,
@@ -244,7 +257,6 @@ class Customer {
 		if(!$id) {
 			$bc_id = $this->getBCCustomerByEmail();
 		} else {
-
 			//otherwise, we're doing an update on an existing customer ID
 			$bc_id = $id;
 		}
@@ -362,6 +374,10 @@ class Customer {
 			$bc_address = $response->json(array('object'=>TRUE));
 			$wombat_obj->shipping_address['bigcommerce_id'] = $bc_address->id;
 		}
+
+		$wombat_obj->bigcommerce_id = $bc_id;
+
+		$this->data['wombat'] = $wombat_obj;
 		
 	}
 
