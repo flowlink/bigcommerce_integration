@@ -114,7 +114,7 @@ class Inventory {
 		}
 
 		if($response->getStatusCode() == 204) {
-			$this->doException(null, "No product could be found for ID: {$product_id}, and no bigcommerce_id was provided.");
+			$this->doException(null, "No product could be found for ID: {$sku}, and no bigcommerce_id was provided.");
 		}
 
 		$data = $response->json(array('object'=>TRUE));
