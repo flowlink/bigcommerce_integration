@@ -19,10 +19,58 @@ class Shipment {
 	 */
 	private $request_data;
 
+	/**
+	 * @var array $order_products The products associated with the order, fetched from BigCommerce
+	 */
+	private $order_products;
+
 	public function __construct($data, $type='bc',$client,$request_data) {
 		$this->data[$type] = $data;
 		$this->client = $client;
 		$this->request_data = $request_data;
+	}
+
+
+	/**
+	 * Push this data to BigCommerce (BC)
+	 */
+	public function push() {
+		$client = $this->client;
+		$request_data = $this->request_data;
+		
+		$order_id = $this->getBCID('order');
+		$id = $this->getBCID('shipment');
+
+		//format our data for BC	
+		$bc_data = $this->getBigCommerceObject();
+		$options = array(
+			'body' => (string)json_encode($bc_data),
+			//'debug'=>fopen('debug.txt', 'w')
+			);
+
+		//if there's an existing BC ID, then update
+		if($id) {
+			try {
+				$response = $client->put("orders/$order_id/shipments/$id",$options);
+			} catch (RequestException $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
+			}
+		} else {
+
+			//no ID found, so create a new shipment
+			try {
+				$response = $client->post("orders/$order_id/shipments",$options);
+			} catch (RequestException $e) {
+				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
+			}
+		}
+
+		// $shipment = $response->json(array('object'=>TRUE));
+		// $return_data = $this->get
+
+		$result = "The shipment was ".($id ? 'updated' : 'created')." in BigCommerce";
+		return $result;
+
 	}
 
 
@@ -88,16 +136,14 @@ class Shipment {
 		*/
 
 		$bc_obj = (object) array(
-			'order_address_id' => $wombat_obj->_order_address_id,
+			'order_address_id' => $this->getOrderAddressId($wombat_obj->shipping_address),
 			'tracking_number' => $wombat_obj->tracking,
+			'shipping_method' => $wombat_obj->shipping_method,
 			'comments' => '',
 			);
 
 		foreach($wombat_obj->items as $item) {
-			$bc_obj->items[] = (object) array(
-				'order_product_id' => $item['_order_product_id'],
-				'quantity' => $item['quantity'],
-			);
+			$bc_obj->items[] = $this->prepareBCLineItem($item);
 		}
 
 		$this->data['bc'] = $bc_obj;
@@ -105,6 +151,90 @@ class Shipment {
 		return $bc_obj;
 	}
 
+	/**
+	 * process a Wombat line item into a BC one
+	 */
+	public function prepareBCLineItem($item) {
+		
+		if(!empty($item['bigcommerce_id'])) {
+			$order_product_id = $item['bigcommerce_id'];
+		} else {
+			$order_product_id = $this->getBCOrderProductID($item);
+		}
+
+		if(!$order_product_id) {
+			$this->doException(null,"Could not find an order_product_id (line item id) matching item {$item->product_id}");
+		}
+
+		return (object) array(
+				'order_product_id' => $order_product_id,
+				'quantity' => $item['quantity'],
+			);
+	}
+
+	/**
+	 * Get a BC order_product_id (line item id) when it hasn't been included in our data
+	 */
+	public function getBCOrderProductID($item) {
+		$order_products = $this->getOrderProducts();
+		$id = 0;
+
+		foreach($order_products as $order_product) {
+			if($item['product_id'] == $order_product->sku) {
+				$id = $order_product->id;
+			}
+		}
+
+		return $id;
+	}
+
+	/**
+	 * Get a BC order address ID from a Wombat shipping address
+	 *
+	 * Either extract a passed bigcommerce_id, or fetch address from BC & match
+	 */
+	public function getOrderAddressId($address) {
+		if(!empty($address['bigcommerce_id'])) {
+			
+			$address_id = $address['bigcommerce_id'];
+
+		} else {
+			
+			$client = $this->client;
+
+			$order_id = $this->getBCID('order');
+		
+			try {
+				$response = $client->get("orders/$order_id/shipping_addresses");
+			} catch (\Exception $e) {
+				$this->doException($e,'retrieving shipping addresses');
+			}
+
+			if(intval($response->getStatusCode()) === 200) {
+				$addresses = $response->json(array('object'=>TRUE));
+			} else {
+				$this->doException(null,'could not find shipping addresses in BigCommerce, and none was provided');
+			}
+
+			foreach($addresses as $address) {
+				if(
+					$address->first_name 		== $wombat_obj->shipping_address['firstname']	&&
+					$address->last_name 		== $wombat_obj->shipping_address['lastname']	&&
+					$address->street_1 			== $wombat_obj->shipping_address['address1']	&&
+					$address->street_2 			== $wombat_obj->shipping_address['address2']	&&
+					$address->city 					== $wombat_obj->shipping_address['city']			&&
+					$address->state 				== $wombat_obj->shipping_address['state']			&&
+					$address->country_iso2 	== $wombat_obj->shipping_address['country']		&&
+					$address->zip 					== $wombat_obj->shipping_address['zipcode']
+					) {
+					$address_id = $address->id;
+				}
+				
+			}
+		}
+
+		return $address_id;
+	}
 	/**
 	 * get required IDs from BigCommerce to be able to push a new shipment
 	 */
@@ -154,21 +284,10 @@ class Shipment {
 		}
 
 		// get order products for the order_product_id
-		try {
-			$response = $client->get("orders/$order_id/products");
-		} catch (\Exception $e) {
-			$this->doException($e,'retrieving line items');
-		}
+		$products = $this->getOrderProducts($order_id);
 
-		if(intval($response->getStatusCode()) === 200)
-			//$this->data['bc']->$resource_name = $response->json(array('object'=>TRUE));
-			$products = $response->json(array('object'=>TRUE));
-		else
-			//$this->data['bc']->$resource_name = NULL;
-			$products = NULL;
-		
 		// go through the resulting products and match the product_ids to get the order_product_id
-		if(is_array($products)) {
+		if(!empty($products)) {
 			foreach($products as $product) {
 				
 				foreach($this->data['wombat']['items'] as $index => $item) {
@@ -179,6 +298,33 @@ class Shipment {
 
 			}
 		}
+	}
+
+	/**
+	 * Fetch the order's order products (line items) from BC
+	 */
+	public function getOrderProducts() {
+		$client = $this->client;
+		
+		$order_id = $this->getBCID('order');
+
+		if(empty($this->order_products)) {
+			$this->order_products = array();
+
+			try {
+				$response = $client->get("orders/$order_id/products");
+			} catch (\Exception $e) {
+				$this->doException($e,'retrieving line items');
+			}
+
+			if(intval($response->getStatusCode()) === 200) {
+				
+				$this->order_products = $response->json(array('object'=>TRUE));
+			}
+		}
+
+		return $this->order_products;
+		
 	}
 
 	/**
@@ -220,6 +366,10 @@ class Shipment {
 	 */
 	protected function doException($e,$action) {
 		$wombat_obj = (object) $this->data['wombat'];
-		throw new \Exception($this->request_data['request_id'].":::::Error received from BigCommerce while {$action} for shipment {$wombat_obj->id}:::::".$e->getResponse()->getBody(),500);
+		$response_body = "";
+		if(!is_null($e)) {
+			$reponse_body = ":::::".$e->getResponse()->getBody();
+		}
+		throw new \Exception($this->request_data['request_id'].":::::Error received: {$action} for shipment {$wombat_obj->id}, order {$wombat_obj->order_id}{$response_body}",500);
 	}
 }

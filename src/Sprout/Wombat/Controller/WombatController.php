@@ -595,6 +595,32 @@ class WombatController {
 	}
 
 	/**
+	 * Push customer data to BigCommerce
+	 *
+	 * The Shipment object will check whether this data matches an existing shipment, and create
+	 * or update as necessary
+	 */
+	public function pushShipmentAction(Request $request, Application $app) {
+
+		$request_data = $this->initRequestData($request,$app);
+		
+		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
+
+		$wombat_data = $request->request->get('shipment');
+
+		$shipment = new Shipment($wombat_data,'wombat',$client,$request_data);
+		$result = $shipment->push();
+
+		$response = array(
+				'request_id' => $request_data['request_id'],
+				'summary' => $result,
+		);
+		
+		return $app->json($response,200);
+
+	}
+
+	/**
 	 * Post a shipment to BigCommerce
 	 */
 
@@ -606,9 +632,9 @@ class WombatController {
 		$wombat_data = $request->request->get('shipment');
 		
 		$bcModel = new Shipment($wombat_data,'wombat', $client, $request_data);
-		$bcModel->prepareBCResources($client);
 		$bc_data = $bcModel->getBigCommerceObject('create');
-		
+		// echo print_r($bc_data,true).PHP_EOL;
+		// return print_r("hi");
 		$options = array(
 			'headers'=>array('Content-Type'=>'application/json'),
 			'body' => (string)json_encode($bc_data),
