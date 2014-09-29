@@ -730,9 +730,9 @@ class Product {
 
 		$option = $response->json(array('object'=>TRUE));
 		
-		//add to our cached options
+		//reset our cached options
 		if(!empty($this->options)) {
-			$this->options[] = $option;
+			$this->options = array();
 		}
 		return $option;
 	}
@@ -742,7 +742,7 @@ class Product {
 	 */
 	public function createOptionValue($option, $option_value) {
 		$client = $this->client;
-
+		// echo "CREATE $option_value for: ".print_r($option,true).PHP_EOL;
 		$new_value = (object) array(
 			'value' => $option_value,
 			'label' => ucfirst(strtolower($option_value)),
@@ -760,9 +760,9 @@ class Product {
 
 		$value = $response->json(array('object'=>TRUE));
 		
-		//add to our cached options
+		//reset  our cached options
 		if(!empty($this->option_values)) {
-			$this->option_values[$option->id][] = $value;
+			$this->option_values = array();
 		}
 		
 		return $value;
@@ -900,21 +900,25 @@ class Product {
 
 		$product_options = $this->getProductOptions($product_id);
 		$options = $this->getOptions();
-		
+		// echo "PRODUCT_OPTIONS: ".print_r($product_options,true).PHP_EOL;
+		// echo "OPTIONS: ".print_r($options,true).PHP_EOL;
 
 		$sku_options = array();
 
 		foreach($variant_options as $variant_opt_name => $variant_opt_value) {
 			$sku_option = array();
+			// echo "VAR OPT: $variant_opt_name $variant_opt_value".PHP_EOL;
 			foreach($options as $option) {
-				
+				// echo "OPT: {$option->name}".PHP_EOL;
 				if(strtoupper($variant_opt_name) == strtoupper($option->name)) {
 					
 					$sku_option['product_option_id'] = $product_options[$option->id]->id;
 					
 					$values = $this->getOptionValues($option);
+
+					// echo "OPT VAL: ".print_r($values,true).PHP_EOL;
 					
-					$option_value_id = 0;
+					$value_id = 0;
 					foreach($values as $value) {
 						if(strtoupper($variant_opt_value) == strtoupper($value->value)) {
 							$value_id = $value->id;
@@ -923,13 +927,15 @@ class Product {
 					if(!$value_id) {
 
 						//we didn't find a value ID, so create the value for this option
-						$value = $this->createOptionValue($option,$variant_opt_value);
-						$value_id = $value->id;
+						$new_value = $this->createOptionValue($option,$variant_opt_value);
+						// echo "CREATE VALUE: ".print_r($new_value,true).PHP_EOL;
+						$value_id = $new_value->id;
 					}
 
 					$sku_option['option_value_id'] = $value_id;
 				}
 			}
+			// echo "SKU OPT: ".print_r($sku_option,true).PHP_EOL;
 			$sku_options[] = (object)$sku_option;
 		}
 
