@@ -65,14 +65,39 @@ class Shipment {
 			}
 		}
 
-		// $shipment = $response->json(array('object'=>TRUE));
-		// $return_data = $this->get
+		$shipment = $response->json(array('object'=>TRUE));
+		$return_data = $this->getWombatResponse($shipment);
 
 		$result = "The shipment was ".($id ? 'updated' : 'created')." in BigCommerce";
 		return $result;
 
 	}
 
+	/**
+	 * Get a response object to send back to Wombat after creating an item in BC
+	 */
+	public function getWombatResponse($bc_obj) {
+		$wombat_original = $this->data['wombat'];
+		$wombat_response = new \stdClass();
+		
+		foreach ($wombat_original as $key => $value) {
+			
+			if($key == 'items') {
+				$wombat_response->items = array();
+				foreach($value as $item) {
+					$wombat_response->items[] = (object) $item;
+				}
+			} else if($key == 'shipping_address') {
+				$wombat_response->shipping_address = (object) $value;
+				$wombat_response->shipping_address->bigcommerce_id = $bc_obj->order_address_id;
+			} else {
+				$wombat_response->{$key} = $value;
+			}
+		}
+		$wombat_response->bigcommerce_id = $bc_obj->id;
+		$wombat_response->updated_at = (new \DateTime())->format('c');
+		return $wombat_response;
+	}
 
 	/*
 		Wombat attributes:
@@ -141,9 +166,12 @@ class Shipment {
 			'shipping_method' => $wombat_obj->shipping_method,
 			'comments' => '',
 			);
-
-		foreach($wombat_obj->items as $item) {
-			$bc_obj->items[] = $this->prepareBCLineItem($item);
+		
+		// BC forbids items on upate
+		if($action == 'create') {
+			foreach($wombat_obj->items as $item) {
+				$bc_obj->items[] = $this->prepareBCLineItem($item);
+			}
 		}
 
 		$this->data['bc'] = $bc_obj;
@@ -335,20 +363,29 @@ class Shipment {
 
 		$hash = $this->request_data['hash'];
 		if($fetch == 'shipment') {
+			$id = 0;
 			if(!empty($this->data['wombat']['bigcommerce_id'])) {
-				return $this->data['wombat']['bigcommerce_id'];
+				$id = $this->data['wombat']['bigcommerce_id'];
 			}
-			$id = $this->data['wombat']['id'];
+			if(!$id) {
+				$wombat_id = $this->data['wombat']['id'];
+				if((stripos($wombat_id, $hash) !== false) &&(strlen($wombat_id) >= strlen($hash))) {
+					$id = str_replace($hash.'_', '', $wombat_id);
+				}
+			}
 		} else {
 			if(!empty($this->data['wombat']['bigcommerce_order_id'])) {
-				return $this->data['wombat']['bigcommerce_order_id'];
+				$id =  $this->data['wombat']['bigcommerce_order_id'];
+			} else {
+				$id = $this->data['wombat']['order_id'];	
+
+				if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
+					$id = str_replace($hash.'_', '', $id);
+				}
 			}
-			$id = $this->data['wombat']['order_id'];	
 		}
 
-		if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
-			$id = str_replace($hash.'_', '', $id);
-		}
+		
 		return $id;
 	}
 

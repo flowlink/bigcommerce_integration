@@ -5,6 +5,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Sprout\Wombat\Entity\UserPersister;
 
+// set the timezone to UTC to avoid timezone warnings
+date_default_timezone_set('UTC');
+
 /**
  * Persister service
  */

@@ -630,8 +630,9 @@ class WombatController {
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
 
 		$wombat_data = $request->request->get('shipment');
-		
+
 		$bcModel = new Shipment($wombat_data,'wombat', $client, $request_data);
+		
 		$bc_data = $bcModel->getBigCommerceObject('create');
 		// echo print_r($bc_data,true).PHP_EOL;
 		// return print_r("hi");
@@ -656,9 +657,13 @@ class WombatController {
 			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce while creating shipment:::::".$response->getBody(),500);
 		} else {
 			//return our success code & data
+			$shipment = $response->json(array('object'=>TRUE));
+			$wombat_response_data = $bcModel->getWombatResponse($shipment);
+
 			$response = array(
 				'request_id' => $request_data['request_id'],
 				'summary' => "The shipment for order $order_id was created in BigCommerce",
+				'shipments' => array($wombat_response_data),
 				);
 			return $app->json($response,200);
 		}
@@ -676,7 +681,6 @@ class WombatController {
 		$wombat_data = $request->request->get('shipment');
 
 		$bcModel = new Shipment($wombat_data,'wombat', $client, $request_data);
-		$bcModel->prepareBCResources($client);
 		$bc_data = $bcModel->getBigCommerceObject('update');
 		$bc_id = $bcModel->getBCID();
 
