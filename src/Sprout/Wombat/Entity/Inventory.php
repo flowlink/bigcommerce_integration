@@ -15,6 +15,10 @@ class Inventory {
 		$this->request_data = $request_data;
 	}
 
+	public function push() {
+		$product_id = $this->getBCID();
+	}
+
 	/**
 	 * Get a Wombat-formatted set of data from a BigCommerce one.
 	 */
@@ -105,12 +109,17 @@ class Inventory {
 		
 		try {
 			$response = $client->get('products',array('query'=>array('sku'=>$sku)));
-			$data = $response->json(array('object'=>TRUE));
-
-			return $data[0]->id;
 		} catch (\Exception $e) {
 			$this->doException($e,'fetching bigcommerce_id');
 		}
+
+		if($response->getStatusCode() == 204) {
+			$this->doException(null, "No product could be found for ID: {$product_id}, and no bigcommerce_id was provided.");
+		}
+
+		$data = $response->json(array('object'=>TRUE));
+
+		return $data[0]->id;
 	}
 	
 	/**
