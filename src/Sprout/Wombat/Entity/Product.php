@@ -44,10 +44,99 @@ class Product {
 	 */
 	private $request_data;
 
-	public function __construct($data, $type='bc',$client,$request_data) {
+	public function __construct($data, $type='bc',$client = null,$request_data = null) {
+		if(func_num_args() > 2) {
+			$this->data[$type] = $data;
+			$this->client = $client;
+			$this->request_data = $request_data;	
+		} else {
+			$this->client = func_get_arg(0);
+			$this->request_data = func_get_arg(1);
+		}
+
+	}
+
+	/**
+	 * Add or override object data after creation
+	 */
+	public function addData($data, $type) {
 		$this->data[$type] = $data;
-		$this->client = $client;
-		$this->request_data = $request_data;
+	}
+
+	/**
+	 * Fetch product data by SKU from BC
+	 */
+	public function getBySku($sku) {
+		$client = $this->client;
+		//get the newly created product
+		try {
+			$response = $client->get('products',array('query'=>array('sku'=>$sku)));
+		} catch (\Exception $e) {
+			$this->doException($e,'fetching created product data');
+		}
+
+		$product = $response->json(array('object'=>TRUE));
+		$product = $product[0];
+		
+		$product->_store_url = $this->request_data['store_url'];
+
+		$this->data['bc'] = $product;
+		
+		$this->loadAttachedResources();
+	}
+
+
+	/**
+	 * after creating an object in BigCommerce, return the IDs to Wombat
+	 */
+	public function getWombatResponse() {
+		$wombat_obj = (object) $this->data['wombat'];
+		$bc_obj = (object) $this->data['bc'];
+
+		// echo "W: ".print_r($wombat_obj,true).PHP_EOL;
+		// echo "B: ".print_r($bc_obj,true).PHP_EOL;
+		
+		$product_id = $this->getBCID();
+
+		$product = (object) array(
+			'id' 							=> $wombat_obj->id,
+			'bigcommerce_id'	=> $product_id,
+			);
+
+		//find images, property_ids and variants, convert back to objects as necessary
+		if(!empty($wombat_obj->images)) {
+			$images = array();
+			foreach($wombat_obj->images as $image) {
+				echo "image: ".print_r($image,true).PHP_EOL;
+				$image = (object) array(
+					'bigcommerce_id' => $image['bigcommerce_id'],
+					);
+				$images[] = $image;
+			}
+			$product->images = $images;
+		}
+		if(!empty($wombat_obj->bigcommerce_property_ids)) {
+			$product->bigcommerce_property_ids = $wombat_obj->bigcommerce_property_ids;
+		}
+		if(!empty($wombat_obj->variants)) {
+			$variants = array();
+			foreach ($wombat_obj->variants as $variant) {
+				$variant = (object) $variant;
+				$images = array();
+				foreach ($variant->images as $image) {
+					$image = (object)$image;
+					$image->dimensions = (object) $image->dimensions;
+					$images[] = $image;
+				}
+				$variant->images = $images;
+				$variants[] = $variant;
+			}
+			$product->variants = $variants;
+		}
+
+		return $product;
+
+		
 	}
 
 	/**
@@ -277,6 +366,8 @@ class Product {
 		$wombat_obj = (object) $this->data['wombat'];
 
 		$bc_id = $this->getBCID();
+
+		$wombat_obj->bigcommerce_id = $bc_id;
 		
 		//map Wombat images
 		if(!empty($wombat_obj->images)) {
@@ -431,65 +522,6 @@ class Product {
 		}
 		
 		$this->data['wombat'] = $wombat_obj;
-	}
-
-	/**
-	 * after creating an object in BigCommerce, return the IDs to Wombat
-	 */
-	public function pushBigCommerceIDs($client, $request_data) {
-		$wombat_obj = (object) $this->data['wombat'];
-
-		$product_id = $this->getBCID();
-
-		$product = (object) array(
-			'id' 							=> $wombat_obj->id,
-			'bigcommerce_id'	=> $product_id,
-			);
-
-		//find images, property_ids and variants, convert back to objects as necessary
-		if(!empty($wombat_obj->images)) {
-			$images = array();
-			foreach($wombat_obj->images as $image) {
-				$image = (object)$image;
-				$image->dimensions = (object) $image->dimensions;
-				$images[] = $image;
-			}
-			$product->images = $images;
-		}
-		if(!empty($wombat_obj->bigcommerce_property_ids)) {
-			$product->bigcommerce_property_ids = $wombat_obj->bigcommerce_property_ids;
-		}
-		if(!empty($wombat_obj->variants)) {
-			$variants = array();
-			foreach ($wombat_obj->variants as $variant) {
-				$variant = (object) $variant;
-				$images = array();
-				foreach ($variant->images as $image) {
-					$image = (object)$image;
-					$image->dimensions = (object) $image->dimensions;
-					$images[] = $image;
-				}
-				$variant->images = $images;
-				$variants[] = $variant;
-			}
-			$product->variants = $variants;
-		}
-
-		$update_data = (object) array(
-			'products' => array($product),
-			);
-
-		try{
-			$client_options = array(
-				'headers'=>array('Content-Type'=>'application/json'),
-				'body' => (string)json_encode($update_data),
-				//'debug' => fopen('debug.txt','w'),
-				);
-			$client->post('',$client_options);
-		}
-		catch (\Exception $e) {
-			$this->doException($e,'pushing BigCommerce ID values');
-		}
 	}
 
 	/**

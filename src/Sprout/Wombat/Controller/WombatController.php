@@ -128,10 +128,17 @@ class WombatController {
 		if($response->getStatusCode() != 201) {
 			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
 		} else {
+
+			$wombat = $bcModel->getWombatResponse();
+			// echo 'original wombat'.print_r($wombat_data,true).PHP_EOL;
+			echo 'new product wombat: '.print_r($wombat,true).PHP_EOL;
+
+
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
 				'summary' => "The product $bc_data->name was created in BigCommerce",
+				'products' => array($product)
 				);
 			return $app->json($response,200);
 		}
