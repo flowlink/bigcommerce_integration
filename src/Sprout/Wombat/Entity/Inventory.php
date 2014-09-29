@@ -65,7 +65,7 @@ class Inventory {
 		$client =  $this->client;
 		$request_data = $this->request_data;
 		
-		$product_id = $this->getBCID;
+		$product_id = $this->getBCID();
 
 		try {
 			$response = $client->get("products/{$product_id}");
