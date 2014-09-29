@@ -134,7 +134,7 @@ class Product {
 			$product->variants = $variants;
 		}
 
-		return $product;
+		return json_encode($product);
 
 		
 	}
