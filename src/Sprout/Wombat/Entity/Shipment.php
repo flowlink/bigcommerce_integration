@@ -128,14 +128,41 @@ class Shipment {
 
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $this->getHashId($bc_obj->id),
-			'order_id' => $bc_obj->order_id,
-			'email' => !empty($bc_obj->shipping_address->email)?$bc_obj->shipping_address->email:$bc_obj->billing_address->email, // @todo: maybe just one of these, or get from customer profile
-			'shipping_method' => $bc_obj->shipping_method,
-			'updated_at' => $bc_obj->date_created,
-			'shipped_at' => $bc_obj->date_created,
-			'bigcommerce_id' => $bc_obj->id,
+			'id' 							=> $this->getHashId($bc_obj->id),
+			'order_id'				=> $this->getHashId($bc_obj->order_id),
+			'email' 					=> !empty($bc_obj->shipping_address->email)?$bc_obj->shipping_address->email:$bc_obj->billing_address->email, // @todo: maybe just one of these, or get from customer profile
+			'shipping_method'	=> $bc_obj->shipping_method,
+			'updated_at' 			=> date(\DateTime::ISO8601,strtotime($bc_obj->date_created)),
+			'shipped_at'			=> date(\DateTime::ISO8601,strtotime($bc_obj->date_created)),
+			'status'					=> 'ready',
+			'stock_location'	=> 'default',
+			'bigcommerce_id'	=> $bc_obj->id,
 			);
+
+		$wombat_obj->shipping_address = (object) array(
+			'firstname'				=> $bc_obj->shipping_address->first_name,
+      'lastname'				=> $bc_obj->shipping_address->last_name,
+      'address1'				=> $bc_obj->shipping_address->street_1,
+      'address2'				=> $bc_obj->shipping_address->street_2,
+      'city'						=> $bc_obj->shipping_address->city,
+      'state'						=> $bc_obj->shipping_address->state,
+      'country' 				=> $bc_obj->shipping_address->country_iso2,
+      'phone' 					=> $bc_obj->shipping_address->phone,
+      'bigcommerce_id' 	=> $bc_obj->order_address_id,
+			);
+
+		$items = $this->getOrderProducts($bc_obj->order_id);
+		foreach($items as $item) {
+			$wombat_obj->items[] = (object) array(
+				'name' 										=> $item->name,
+        'product_id' 							=> $item->sku,
+        'quantity' 								=> $item->quantity,
+        'price' 									=> (float) number_format($item->total_inc_tax, 2, '.', ''),
+        'options'									=> new \stdClass(), // @todo: map this? wombat docs seem to ignore it
+        'bigcommerce_id'					=> $item->id,
+        'bigcommerce_product_id'	=> $item->product_id,
+				);
+		}
 
 		$this->data['wombat'] = $wombat_obj;
 		return $wombat_obj;
@@ -331,10 +358,12 @@ class Shipment {
 	/**
 	 * Fetch the order's order products (line items) from BC
 	 */
-	public function getOrderProducts() {
+	public function getOrderProducts($order_id = 0) {
 		$client = $this->client;
 		
-		$order_id = $this->getBCID('order');
+		if(!$order_id) {
+			$order_id = $this->getBCID('order');
+		}
 
 		if(empty($this->order_products)) {
 			$this->order_products = array();
