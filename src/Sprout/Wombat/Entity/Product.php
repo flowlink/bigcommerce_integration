@@ -281,7 +281,10 @@ class Product {
 		//map Wombat images
 		if(!empty($wombat_obj->images)) {
 			foreach($wombat_obj->images as &$image) {
-				
+				if(stripos($image['url'], 'product_images/../app/assets/img/sample_images'))  {
+					//can't edit sample images in BigCommerce
+					continue;
+				}
 				$data = (object) array(
 					'image_file' 		=> $this->processImageURL($image['url']),
 					'description' 	=> $image['title'],
@@ -302,7 +305,7 @@ class Product {
 						$response = $client->put("products/$bc_id/images/$image_id",$client_options);
 					}
 				} catch (\Exception $e) {
-					
+					$this->doException($e,'pushing product images');
 				}
 
 				$created_image = $response->json(array('object'=>TRUE));
