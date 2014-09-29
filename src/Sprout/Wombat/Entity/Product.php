@@ -122,8 +122,8 @@ class Product {
 			$variants = array();
 			foreach ($wombat_obj->variants as $variant) {
 				$variant = (object) array(
-					'bigcommerce_id'=> $variant->bigcommerce_id,
-					'bigcommerce_rule_id'=> $variant->bigcommerce_rule_id,
+					'bigcommerce_id'=> $variant['bigcommerce_id'],
+					'bigcommerce_rule_id'=> $variant['bigcommerce_rule_id'],
 					);
 				$variants[] = $variant;
 			}
