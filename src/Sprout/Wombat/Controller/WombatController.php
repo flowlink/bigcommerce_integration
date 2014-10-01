@@ -201,36 +201,15 @@ class WombatController {
 		$wombat_data = $request->request->get('inventory');
 
 		$bcModel = new Inventory($wombat_data,'wombat',$client,$request_data);
-		$bcModel->checkInventoryTracking();
-		$bc_data = $bcModel->getBigCommerceObject('set_inventory');
-		$bc_id = $bcModel->getBCID();
-
-		$options = array(
-			'headers'=>array('Content-Type'=>'application/json'),
-			'body' => (string)json_encode($bc_data),
-			//'debug'=>fopen('debug.txt', 'w')
+		$result = $bcModel->push();
+		
+		//return our success code & data
+		$response = array(
+			'request_id' => $request_data['request_id'],
+			'summary' => $result['message'],
 			);
-
-		try {
-			$response = $client->put("products/{$bc_id}",$options);
-		} catch (RequestException $e) {
-			//print_r(get_object_vars($e->getResponse()));
-			//echo "URL: ".print_r($e->getResponse()->getEffectiveUrl(),true).PHP_EOL;
-			throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
-		}
-		// @todo: the Guzzle client will intervene with its own error response before we get to our error below,
-		// the above code takes care of that, but investigate if checking the code below is ever necessary
-
-		if($response->getStatusCode() != 200) {
-			throw new Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$response->getBody(),500);
-		} else {
-			//return our success code & data
-			$response = array(
-				'request_id' => $request_data['request_id'],
-				'summary' => "The inventory level for product ID: ".$wombat_data['product_id']." was updated in BigCommerce",
-				);
-			return $app->json($response,200);
-		}
+		return $app->json($response,200);
+		
 	}
 
 	/*
