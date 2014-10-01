@@ -68,10 +68,82 @@ class Shipment {
 		$shipment = $response->json(array('object'=>TRUE));
 		$return_data = $this->getWombatResponse($shipment);
 
+		//$this->updateOrderStatus($order_id);
+
 		$result = "The shipment was ".($id ? 'updated' : 'created')." in BigCommerce";
 		return $result;
 
 	}
+
+	/**
+	 * Update the order status after creating or updating a shipment
+	 */
+	public function updateOrderStatus($order_id) {
+		$client = $this->client;
+
+		try {
+			$response = $client->get("orders/{$order_id}/products");
+		}
+		catch (\Exception $e) {
+			$this->doException($e, 'fetching order line items to check order fulfillment status');
+		}
+
+		$items = $response->json(array('object'=>TRUE));
+		$count = 0; 		//total items
+		$shipped = 0;		//shipped items
+
+		foreach ($items as $item) {
+			$count += $item->quantity;
+			if($item->quantity == $item->quantity_shipped) {
+				$shipped++;
+			}
+		}
+
+		$statuses = $this->getOrderStatuses();
+
+		if($shipped >= $count) {
+			$status_id = $statuses['Shipped'];
+		} else if ($shipped > 0 && $shipped < $count) {
+			$status_id = $statuses['Partially Shipped'];
+		}
+
+		$order_update = (object) array(
+			'status_id' => $status_id,
+		);
+		$client_options = array(
+			'body' => json_encode($order_update),
+			);
+		try {
+			$response = $client->put("orders/{$order_id}",$client_options);
+		}
+		catch (\Exception $e) {
+			$this->doException($e, 'updating order status');
+		}
+	}
+
+	/**
+	 * Get all order statuses
+	 */
+	public function getOrderStatuses() {
+		$client = $this->client;
+
+		try {
+			$response = $client->get("order_statuses");
+		}
+		catch (\Exception $e) {
+			$this->doException($e, 'fetching order statuses');
+		}
+
+		$statuses = $response->json(array('object'=>TRUE));
+		$output = array();
+
+		foreach ($statuses as $status) {
+			$output[$status->name] = $status;
+		}
+
+		return $output;
+	}
+
 
 	/**
 	 * Get a response object to send back to Wombat after creating an item in BC
@@ -432,6 +504,7 @@ class Shipment {
 	 */
 	protected function doException($e,$action) {
 		$wombat_obj = (object) $this->data['wombat'];
+		
 		$response_body = "";
 		if(!is_null($e)) {
 			$reponse_body = ":::::".$e->getResponse()->getBody();
