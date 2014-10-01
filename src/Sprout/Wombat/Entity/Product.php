@@ -329,17 +329,18 @@ class Product {
 		*/
 		
 		$bc_obj = (object) array(
-			'sku' 							=> $wombat_obj->id, //store this so we can use it as a primary key in Wombat
-			'name' 							=> $wombat_obj->name,
-			'price' 						=> (String)number_format($wombat_obj->price,2,'.',''),
-			'description' 			=> $wombat_obj->description,
-			'categories' 				=> $this->getCategories($wombat_obj->taxons),
-			'type' 							=> 'physical',
-			'availability' 			=> 'available',
-			'weight' 						=> (string)1,
-			'custom_url' 				=> $this->processPermalink($wombat_obj->permalink),
-			'meta_description'	=> $wombat_obj->meta_description,
-			'meta_keywords'			=> $wombat_obj->meta_keywords,
+			'sku' 								=> $wombat_obj->id, //store this so we can use it as a primary key in Wombat
+			'name' 								=> $wombat_obj->name,
+			'price' 							=> (String)number_format($wombat_obj->price,2,'.',''),
+			'description' 				=> $wombat_obj->description,
+			'categories' 					=> $this->getCategories($wombat_obj->taxons),
+			'type' 								=> 'physical',
+			'availability' 				=> 'available',
+			'weight' 							=> (string)1,
+			'custom_url' 					=> $this->processPermalink($wombat_obj->permalink),
+			'meta_description'		=> $wombat_obj->meta_description,
+			'meta_keywords'				=> $wombat_obj->meta_keywords,
+			'inventory_tracking' 	=> empty($wombat_obj->variants)? 'simple':'sku',
 		);
 
 		//if these are present, we'll need to find an option set
