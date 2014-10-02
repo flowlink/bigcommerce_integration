@@ -443,6 +443,10 @@ class Product {
 		if(!empty($wombat_obj->variants) && !empty($wombat_obj->options)) {
 			
 			foreach($wombat_obj->variants as &$variant) {
+				//Wombat by default includes a variant matching the master product. Don't attempt to add this as a SKU
+				if($variant['sku'] == $wombat_obj->sku) {
+					continue;
+				}
 				$data = (object) array(
 					'sku' => 							$variant['sku'],
 					'cost_price' => 			$variant['cost_price'],
