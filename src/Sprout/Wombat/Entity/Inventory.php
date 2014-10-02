@@ -28,8 +28,8 @@ class Inventory {
 		$bc_data = $this->getBigCommerceObject();
 		$bc_id = $this->getBCID();
 
-		echo "DATA: ".print_r($bc_data,true).PHP_EOL;
-		echo "BCID: ".print_r($bc_id,true).PHP_EOL;
+		
+		
 
 		if(is_array($bc_id)) {
 			$response = $this->pushSku($bc_id,$bc_data);
@@ -53,7 +53,7 @@ class Inventory {
 		$client = $this->client;
 		$sku_id = $id_array['sku_id'];
 		$parent_id = $id_array['parent_id'];
-		echo "JSON: ".PHP_EOL.print_r(json_encode($data),true).PHP_EOL;
+		
 		$client_options = array(
 			'body' => json_encode($data),
 			'debug' => fopen('debug.txt','w'),
@@ -218,7 +218,7 @@ class Inventory {
 			// See if the Wombat ID matches a BC parent SKU
 			if(empty($id)) {
 				$sku = $wombat_obj->product_id;
-				echo "SKU: $sku".PHP_EOL;
+				
 				
 				try {
 					$response = $client->get('products',array('query'=>array('sku'=>$sku)));
@@ -235,7 +235,7 @@ class Inventory {
 				}
 
 			}
-			echo "ID: ".print_r($id,true).PHP_EOL;
+			
 			$this->bc_id = $id;
 		}
 
@@ -271,7 +271,7 @@ class Inventory {
 	public function getSkuFromProduct($product_id,$sku) {
 		$client = $this->client;
 		$id = 0;
-		echo "GSFP: $product_id $sku".PHP_EOL;
+		
 		try {
 			$response = $client->get("products/{$product_id}/skus",array('query'=>array('sku'=>$sku)));
 		} catch (\Exception $e) {
@@ -281,9 +281,9 @@ class Inventory {
 		if($response->getStatusCode() != 204) {
 			
 			$data = $response->json(array('object'=>TRUE));
-			echo "GSFP: ".print_r($data,true).PHP_EOL;
+			
 			$id = $data[0]->id;
-			echo "GSFP: ".print_r($id,true).PHP_EOL;
+			
 
 		}	
 
