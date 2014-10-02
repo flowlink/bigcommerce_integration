@@ -946,8 +946,9 @@ class Product {
 				// echo "OPT: {$option->name}".PHP_EOL;
 				if(strtoupper($variant_opt_name) == strtoupper($option->name)) {
 					
-					$sku_option['product_option_id'] = $product_options[$option->id]->id;
-					
+					if(array_key_exists($option->id, $product_options)) {
+						$sku_option['product_option_id'] = $product_options[$option->id]->id;
+					}
 					$values = $this->getOptionValues($option);
 
 					// echo "OPT VAL: ".print_r($values,true).PHP_EOL;
@@ -970,7 +971,7 @@ class Product {
 				}
 			}
 			if(empty($sku_option['product_option_id']) || empty($sku_option['option_value_id'])) {
-				$this->doException(null,"Could not match variant options against BigCommerce options. Check that the option names are not misspelt.");
+				$this->doException(null,"Could not match variant options against BigCommerce options. Check that the option names are not misspelt and that variant options names agree with master product option list.");
 			}
 			// echo "SKU OPT: ".print_r($sku_option,true).PHP_EOL;
 			$sku_options[] = (object)$sku_option;
