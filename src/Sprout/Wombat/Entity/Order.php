@@ -312,7 +312,7 @@ class Order {
 				case 'CASH ON DELIVERY':
 				case 'CASH':
 				default:
-					$status = "Completed";
+					$status = "completed";
 					break;
 			}
 		}
