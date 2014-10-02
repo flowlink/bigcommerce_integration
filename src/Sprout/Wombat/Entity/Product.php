@@ -340,7 +340,7 @@ class Product {
 			'custom_url' 					=> $this->processPermalink($wombat_obj->permalink),
 			'meta_description'		=> $wombat_obj->meta_description,
 			'meta_keywords'				=> $wombat_obj->meta_keywords,
-			'inventory_tracking' 	=> 'simple', // this can't be set to sku until the skus are created
+			'inventory_tracking' 	=> empty($wombat_obj->options)? 'simple':'sku',
 		);
 
 		//if these are present, we'll need to find an option set
@@ -440,7 +440,7 @@ class Product {
 		}
 
 		//Map Wombat variants onto BC SKUs & rules
-		if(!empty($wombat_obj->variants)) {
+		if(!empty($wombat_obj->variants) && !empty($wombat_obj->options)) {
 			
 			foreach($wombat_obj->variants as &$variant) {
 				$data = (object) array(
