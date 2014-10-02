@@ -98,10 +98,15 @@ class Product {
 		
 		$product_id = $this->getBCID();
 
-		$product = (object) array(
-			'id' 							=> $wombat_obj->id,
-			'bigcommerce_id'	=> $product_id,
-			);
+		$product = new \stdClass();
+		
+		$complex_fields = array('images','variants');
+
+		foreach($wombat_obj as $key => $value) {
+			if(!in_array($key, $complex_fields)) {
+				$product->{$key} = $value;
+			}
+		}
 
 		//find images, property_ids and variants, convert back to objects as necessary
 		if(!empty($wombat_obj->images)) {
@@ -114,9 +119,7 @@ class Product {
 			}
 			$product->images = $images;
 		}
-		if(!empty($wombat_obj->bigcommerce_property_ids)) {
-			$product->bigcommerce_property_ids = $wombat_obj->bigcommerce_property_ids;
-		}
+		
 		if(!empty($wombat_obj->variants)) {
 			$variants = array();
 			foreach ($wombat_obj->variants as $variant) {
@@ -134,6 +137,8 @@ class Product {
 			}
 			$product->variants = $variants;
 		}
+
+		$product->bigcommerce_id = $product_id;
 
 		return $product;
 
