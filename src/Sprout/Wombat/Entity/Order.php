@@ -158,6 +158,13 @@ class Order {
 			);
 			$wombat_obj->totals->adjustment += ($bc_obj->coupon_discount * -1);
 		}
+		if($bc_obj->discount_amount > 0) { // DISCOUNT
+			$wombat_obj->adjustments[] = (object) array(
+				'name' => 'Discount',
+				'value' => (float) number_format($bc_obj->discount_amount * -1, 2, '.', '')
+			);
+			$wombat_obj->totals->adjustment += ($bc_obj->discount_amount * -1);	
+		}
 		
 		/*** PAYMENTS ***/
 		$wombat_obj->payments[] = (object) array(
