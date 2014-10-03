@@ -42,7 +42,7 @@ class Order {
 			return false;
 
 		$wombat_obj = (object) array(
-			'id'	=> strtoupper($this->getHashId($bc_obj->id)).'_S',
+			'id'	=> strtoupper($this->getHashId($bc_obj->id)).'-S',
 			'order_id' => strtoupper($this->getHashId($bc_obj->id)),
 			'email' => $bc_obj->billing_address->email,
 			'cost' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
@@ -323,7 +323,7 @@ class Order {
 		$id = $this->data['wombat']['id'];
 
 		if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
-			$id = str_ireplace($hash.'_', '', $id);
+			$id = str_ireplace($hash.'-', '', $id);
 		}
 		return $id;
 	}
@@ -402,6 +402,6 @@ class Order {
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		
-		return $hash.'_'.$id;
+		return $hash.'-'.$id;
 	}
 }

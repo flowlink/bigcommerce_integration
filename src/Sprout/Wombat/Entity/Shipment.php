@@ -473,8 +473,8 @@ class Shipment {
 				$wombat_id = $this->data['wombat']['id'];
 				
 				//If id ends in _S, this is a fake ID created during create_shipments. (The ID is actually the order_id in this case)thi
-				if(substr($wombat_id, -2) != '_S' && (stripos($wombat_id, $hash) !== false) &&(strlen($wombat_id) >= strlen($hash))) {
-					$id = str_ireplace($hash.'_', '', $wombat_id);
+				if(substr($wombat_id, -2) != '-S' && (stripos($wombat_id, $hash) !== false) &&(strlen($wombat_id) >= strlen($hash))) {
+					$id = str_ireplace($hash.'-', '', $wombat_id);
 				}
 				
 			}
@@ -485,7 +485,7 @@ class Shipment {
 				$id = $this->data['wombat']['order_id'];	
 				
 				if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
-					$id = str_ireplace($hash.'_', '', $id);
+					$id = str_ireplace($hash.'-', '', $id);
 				}
 			}
 		}
@@ -498,7 +498,7 @@ class Shipment {
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		
-		return $hash.'_'.$id;
+		return $hash.'-'.$id;
 	}
 
 	/**

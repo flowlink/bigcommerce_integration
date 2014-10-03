@@ -184,7 +184,7 @@ class Customer {
 			$wombat_id = $this->data['wombat']['id'];
 
 			if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
-				$id = str_ireplace($hash.'_', '', $wombat_id);
+				$id = str_ireplace($hash.'-', '', $wombat_id);
 			
 			}
 		}
@@ -686,7 +686,7 @@ class Customer {
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		
-		return $hash.'_'.$id;
+		return $hash.'-'.$id;
 	}
 
 	/**
