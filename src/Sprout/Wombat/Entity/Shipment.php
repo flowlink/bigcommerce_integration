@@ -200,8 +200,8 @@ class Shipment {
 
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' 							=> $this->getHashId($bc_obj->id),
-			'order_id'				=> $this->getHashId($bc_obj->order_id),
+			'id' 							=> strtoupper($this->getHashId($bc_obj->id)),
+			'order_id'				=> strtoupper($this->getHashId($bc_obj->order_id)),
 			'email' 					=> !empty($bc_obj->shipping_address->email)?$bc_obj->shipping_address->email:$bc_obj->billing_address->email, // @todo: maybe just one of these, or get from customer profile
 			'shipping_method'	=> $bc_obj->shipping_method,
 			'updated_at' 			=> date(\DateTime::ISO8601,strtotime($bc_obj->date_created)),
@@ -504,7 +504,7 @@ class Shipment {
 	 */
 	protected function doException($e,$action) {
 		$wombat_obj = (object) $this->data['wombat'];
-		
+
 		$response_body = "";
 		if(!is_null($e)) {
 			$reponse_body = ":::::".$e->getResponse()->getBody();

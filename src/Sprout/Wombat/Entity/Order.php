@@ -43,7 +43,7 @@ class Order {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $this->getHashId($bc_obj->id),
+			'id' => strtoupper($this->getHashId($bc_obj->id)),
 			'status' => strtolower($bc_obj->status),
 			'channel' => 'bigcommerce_'.$this->request_data['hash'].'_'.(is_null($bc_obj->external_source) ? $bc_obj->order_source : $bc_obj->external_source),
 			'email' => $bc_obj->billing_address->email,

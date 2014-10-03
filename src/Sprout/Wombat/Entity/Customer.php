@@ -98,7 +98,7 @@ class Customer {
 		
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
-			'id' => $this->getHashId($bc_obj->id),
+			'id' => strtoupper($this->getHashId($bc_obj->id)),
 			'firstname' => $bc_obj->first_name,
 			'lastname' => $bc_obj->last_name,
 			'email' => $bc_obj->email,
