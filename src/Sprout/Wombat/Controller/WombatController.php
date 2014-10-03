@@ -207,6 +207,7 @@ class WombatController {
 		$response = array(
 			'request_id' => $request_data['request_id'],
 			'summary' => $result['message'],
+			'inventories' => $result['objects']
 			);
 		return $app->json($response,200);
 		
