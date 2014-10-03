@@ -154,16 +154,16 @@ class Order {
 		if($bc_obj->coupon_discount > 0) { // COUPONS
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Coupons',
-				'value' => (float) number_format($bc_obj->coupon_discount, 2, '.', '')
+				'value' => (float) number_format($bc_obj->coupon_discount * -1, 2, '.', '')
 			);
-			$wombat_obj->totals->adjustment += ($bc_obj->coupon_discount);
+			$wombat_obj->totals->adjustment += ($bc_obj->coupon_discount * -1);
 		}
 		if($bc_obj->discount_amount > 0) { // DISCOUNT
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Discount',
-				'value' => (float) number_format($bc_obj->discount_amount, 2, '.', '')
+				'value' => (float) number_format($bc_obj->discount_amount * -1, 2, '.', '')
 			);
-			$wombat_obj->totals->adjustment += ($bc_obj->discount_amount);	
+			$wombat_obj->totals->adjustment += ($bc_obj->discount_amount * -1);	
 		}
 		
 		/*** PAYMENTS ***/
