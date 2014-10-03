@@ -80,7 +80,9 @@ class Customer {
 	public function getWombatResponse() {
 		$wombat_obj = (object) $this->data['wombat'];
 		$wombat_obj->billing_address 	= (object) $wombat_obj->billing_address;
-		$wombat_obj->shipping_address = (object) $wombat_obj->shipping_address;
+		if(!empty($wombat_obj->shipping_address)) {
+			$wombat_obj->shipping_address = (object) $wombat_obj->shipping_address;
+		}
 
 		return $wombat_obj;
 	}
