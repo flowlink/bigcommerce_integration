@@ -226,7 +226,12 @@ class WombatController {
 		$request_data = $this->initRequestData($request,$app);
 		
 		$client = $this->legacyAPIClient($request_data['legacy_api_info']);
-		$response = $client->get('orders', array('query' => $request_data['parameters']));
+		
+		try {		 
+			$response = $client->get('orders', array('query' => $request_data['parameters']));
+		} catch(\Exception $e) {
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$e->getResponse()->getBody(),500);			
+		}
 		$response_status = intval($response->getStatusCode());
 
 		// Response
@@ -235,12 +240,20 @@ class WombatController {
 			// get orders
 			$bc_data = $response->json(array('object'=>TRUE));
 			$wombat_data = array();
+			$wombat_shipments = array();
 			if(!empty($bc_data)) {
 				foreach($bc_data as $bc_order) {
 					$bc_order->_store_url = $request_data['store_url'];
+
 					$wombatModel = new Order($bc_order, 'bc', $client, $request_data);
 					$wombatModel->loadAttachedResources();
+
+					 
 					$wombat_data[] = $wombatModel->getWombatObject();
+					if(isset($request_data['create_shipments']) && $request_data['create_shipments']) {
+						$wombat_shipments[] = $wombatModel->getWombatShipmentObject();	
+					}
+					
 				}
 			}
 
@@ -251,6 +264,9 @@ class WombatController {
 				'parameters' => $request_data['parameters'],
 				'orders' => $wombat_data
 			);
+			if(!empty($wombat_shipments)) {
+				$response['shipments'] = $wombat_shipments;
+			}
 
 			return $app->json($response, 200);
 			
@@ -259,7 +275,7 @@ class WombatController {
 			return $app->json($this->emptyResponse($request_data,'orders'), 200);
 			
 		} else { // error
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);			
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$response->getBody(),500);			
 		}
 	}
 
@@ -396,7 +412,7 @@ class WombatController {
 			return $app->json($this->emptyResponse($request_data,'customers'), 200);
 			
 		} else { // error
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);			
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$response->getBody(),500);			
 		}
 	}
 
@@ -513,7 +529,7 @@ class WombatController {
 				// @todo: rework response status logic checking
 				
 			} else { // error
-				throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);			
+				throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$response->getBody(),500);			
 			}
 		}
 
@@ -578,7 +594,7 @@ class WombatController {
 			
 		} else { // error
 			
-			throw new \Exception($request_data['request_id'].': Error received from BigCommerce:::::'.$response->getBody(),500);
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$response->getBody(),500);
 			
 		}
 	}
@@ -721,6 +737,14 @@ class WombatController {
 		);
 		foreach(array('api_username','api_path','api_token') as $api_info) 
 			unset($parameters[$api_info]);
+
+		if(isset($parameters['create_shipments'])) {
+			$create_shipments = $parameters['create_shipments'];
+			unset($parameters['create_shipments']);
+		} else {
+			$create_shipments = false;
+		}
+
 		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 
 		$parameters = $this->transformParams($parameters,$request->getPathInfo());
@@ -733,6 +757,7 @@ class WombatController {
 			'legacy_api_info'	=> $legacy_api_info,
 			'store_url'				=> $store_url,
 			'hash'						=> $storehasher($store_url),
+			'create_shipments' => $create_shipments,
 			);
 	}
 

@@ -31,6 +31,76 @@ class Order {
 	}
 
 	/**
+	 * Get a Shipment object instead of an Order object
+	 */
+	public function getWombatShipmentObject() {
+		if(isset($this->data['wombat_shipment']))
+			return $this->data['wombat_shipment'];
+		else if(isset($this->data['bc']))
+			$bc_obj = (object) $this->data['bc'];
+		else
+			return false;
+
+		$wombat_obj = (object) array(
+			'id'	=> strtoupper($this->getHashId($bc_obj->id)).'_S',
+			'order_id' => strtoupper($this->getHashId($bc_obj->id)),
+			'email' => $bc_obj->billing_address->email,
+			'cost' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
+			'status' => 'ready',
+			'stock_location' => 'default',
+			'shipping_method' => $bc_obj->_shipping_address->shipping_method,
+			'tracking' => '',
+
+			);
+
+		if(!empty($bc_obj->_shipping_address)) {
+			$wombat_obj->shipping_address = (object) array(
+				//'id' => $bc_obj->_shipping_address->id,
+				'firstname' => $bc_obj->_shipping_address->first_name,
+				'lastname' => $bc_obj->_shipping_address->last_name,
+				'address1' => $bc_obj->_shipping_address->street_1,
+				'address2' => $bc_obj->_shipping_address->street_2,
+				'zipcode' => $bc_obj->_shipping_address->zip,
+				'city' => $bc_obj->_shipping_address->city,
+				'state' => $bc_obj->_shipping_address->state,
+				'country' => $bc_obj->_shipping_address->country_iso2,
+				'phone' => $bc_obj->_shipping_address->phone,
+				'bigcommerce_id' => $bc_obj->_shipping_address->id,
+			);
+		}
+
+		/*** LINE_ITEMS ***/
+		foreach($bc_obj->products as $bc_prod) {
+			$new_line_item = (object) array(
+				'product_id' => empty($bc_prod->sku) ? $bc_prod->product_id : $bc_prod->sku,
+				'name' => $bc_prod->name,
+				'quantity' => $bc_prod->quantity,
+				'price' => (float) number_format($bc_prod->price_ex_tax, 2, '.', ''),
+				'bigcommerce_id' => $bc_prod->id,
+				'bigcommerce_product_id' => $bc_prod->product_id,
+			);
+			
+			// add chosen product options to line item
+			if(!empty($bc_prod->product_options)) {
+				$new_line_item->options = array();
+				foreach($bc_prod->product_options as $bc_option) {
+					$option_key = $bc_option->display_name;
+					$option_val = $bc_option->display_value;
+					$new_option = (object) array(
+						$option_key => $option_val
+					);
+					$new_line_item->options[] = $new_option;
+				}
+			}
+			
+			$wombat_obj->line_items[] = $new_line_item;
+		}
+		$this->data['wombat'] = $wombat_obj;
+		return $wombat_obj;
+
+	}
+
+	/**
 	 * Get a Wombat-formatted set of data from a BigCommerce one.
 	 */
 	public function getWombatObject() {
