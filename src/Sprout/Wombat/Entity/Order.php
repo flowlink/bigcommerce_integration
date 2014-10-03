@@ -93,7 +93,7 @@ class Order {
 				}
 			}
 			
-			$wombat_obj->line_items[] = $new_line_item;
+			$wombat_obj->items[] = $new_line_item;
 		}
 		$this->data['wombat'] = $wombat_obj;
 		return $wombat_obj;
@@ -323,7 +323,7 @@ class Order {
 		$id = $this->data['wombat']['id'];
 
 		if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
-			$id = str_replace($hash.'_', '', $id);
+			$id = str_ireplace($hash.'_', '', $id);
 		}
 		return $id;
 	}

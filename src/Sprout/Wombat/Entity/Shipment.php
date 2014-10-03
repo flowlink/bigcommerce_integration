@@ -52,7 +52,7 @@ class Shipment {
 		if($id) {
 			try {
 				$response = $client->put("orders/$order_id/shipments/$id",$options);
-			} catch (RequestException $e) {
+			} catch (\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 			}
 		} else {
@@ -60,7 +60,7 @@ class Shipment {
 			//no ID found, so create a new shipment
 			try {
 				$response = $client->post("orders/$order_id/shipments",$options);
-			} catch (RequestException $e) {
+			} catch (\Exception $e) {
 				throw new \Exception($request_data['request_id'].":::::Error received from BigCommerce:::::".$e->getResponse()->getBody(),500);
 			}
 		}
@@ -462,6 +462,7 @@ class Shipment {
 	public function getBCID($fetch = "shipment") {
 		
 
+
 		$hash = $this->request_data['hash'];
 		if($fetch == 'shipment') {
 			$id = 0;
@@ -470,23 +471,24 @@ class Shipment {
 			}
 			if(!$id) {
 				$wombat_id = $this->data['wombat']['id'];
-				if((stripos($wombat_id, $hash) !== false) &&(strlen($wombat_id) >= strlen($hash))) {
-					$id = str_replace($hash.'_', '', $wombat_id);
+				
+				//If id ends in _S, this is a fake ID created during create_shipments. (The ID is actually the order_id in this case)thi
+				if(substr($wombat_id, -2) != '_S' && (stripos($wombat_id, $hash) !== false) &&(strlen($wombat_id) >= strlen($hash))) {
+					$id = str_ireplace($hash.'_', '', $wombat_id);
 				}
+				
 			}
 		} else {
 			if(!empty($this->data['wombat']['bigcommerce_order_id'])) {
 				$id =  $this->data['wombat']['bigcommerce_order_id'];
 			} else {
 				$id = $this->data['wombat']['order_id'];	
-
+				
 				if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
-					$id = str_replace($hash.'_', '', $id);
+					$id = str_ireplace($hash.'_', '', $id);
 				}
 			}
 		}
-
-		
 		return $id;
 	}
 

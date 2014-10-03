@@ -35,7 +35,7 @@ $app->post('/add_product', 'Sprout\Wombat\Controller\WombatController::postProdu
 $app->post('/add_order', 'Sprout\Wombat\Controller\WombatController::postOrderAction')
 		//->before($wombat_auth)
 		->before($wombat_includes_bc_auth);
-$app->post('/add_shipment', 'Sprout\Wombat\Controller\WombatController::postShipmentAction')
+$app->post('/add_shipment', 'Sprout\Wombat\Controller\WombatController::pushShipmentAction')
 		//->before($wombat_auth)
 		->before($wombat_includes_bc_auth);
 $app->post('/add_customer', 'Sprout\Wombat\Controller\WombatController::pushCustomerAction')
@@ -49,7 +49,7 @@ $app->post('/update_product', 'Sprout\Wombat\Controller\WombatController::putPro
 $app->post('/update_order', 'Sprout\Wombat\Controller\WombatController::putOrderAction')
 		//->before($wombat_auth)
 		->before($wombat_includes_bc_auth);
-$app->post('/update_shipment', 'Sprout\Wombat\Controller\WombatController::putShipmentAction')
+$app->post('/update_shipment', 'Sprout\Wombat\Controller\WombatController::pushShipmentAction')
 		//->before($wombat_auth)
 		->before($wombat_includes_bc_auth);
 $app->post('/update_customer', 'Sprout\Wombat\Controller\WombatController::pushCustomerAction')

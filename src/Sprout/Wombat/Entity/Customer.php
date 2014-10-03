@@ -184,7 +184,7 @@ class Customer {
 			$wombat_id = $this->data['wombat']['id'];
 
 			if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
-				$id = str_replace($hash.'_', '', $wombat_id);
+				$id = str_ireplace($hash.'_', '', $wombat_id);
 			
 			}
 		}
