@@ -197,7 +197,7 @@ class Order {
 				'name' => 'Tax',
 				'value' => (float) number_format($bc_obj->total_tax, 2, '.', '')
 			);
-			$wombat_obj->totals->adjustment += $bc_obj->total_tax;
+			//$wombat_obj->totals->adjustment += $bc_obj->total_tax;
 		}
 		
 		if($bc_obj->wrapping_cost_ex_tax > 0) { // GIFT WRAPPING
