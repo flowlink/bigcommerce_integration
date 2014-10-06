@@ -492,8 +492,7 @@ class Shipment {
 				
 				if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
 					$id = str_ireplace($hash.'-', '', $id);
-
-					if (substr($wombat_id, -2) != '-S') {
+					if (substr($id, -2) != '-S') {
 						$id = substr($id,0,-2);
 					}
 				}
