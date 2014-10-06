@@ -258,8 +258,8 @@ class WombatController {
 				}
 			}
 
-			if(isset($parameters['min_date_modified'])) {
-				$parameters['min_date_modified'] = date(\DateTime::ISO8601);
+			if(isset($request_data['parameters']['min_date_modified'])) {
+				$request_data['parameters']['min_date_modified'] = date(\DateTime::ISO8601);
 			}
 
 			//return our success code & data
