@@ -258,6 +258,10 @@ class WombatController {
 				}
 			}
 
+			if(isset($parameters['min_date_modified'])) {
+				$parameters['min_date_modified'] = date(\DateTime::ISO8601);
+			}
+
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
