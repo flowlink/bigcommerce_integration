@@ -509,7 +509,7 @@ class Shipment {
 		$wombat_obj = (object) $this->data['wombat'];
 		
 		try {
-			$response = $client->get("orders/$order_id/shipments",array('debug'=>fopen('debug.txt','w')));
+			$response = $client->get("orders/$order_id/shipments");
 		} catch (\Exception $e) {
 			$this->doException($e,'retrieving existing shipments');
 		}		
