@@ -41,8 +41,16 @@ class Inventory {
 			$this->doException(null,"Error while pushing inventory {$wombat_obj->id}:::::".$response->getBody());
 		}
 
+		if(is_array($bc_id)) {
+			$wombat_obj->bigcommerce_parent_id = $bc_id['parent_id'];
+			$wombat_obj->bigcommerce_sku_id = $bc_id['sku_id'];
+		} else {
+			$wombat_obj->bigcommerce_id = $bc_id;
+		}
+
 		return array(
 			'message' => "The Inventory {$wombat_obj->id} for product: {$wombat_obj->product_id} was updated in BigCommerce",
+			'objects' => array($wombat_obj),
 			);
 	}
 
@@ -56,7 +64,7 @@ class Inventory {
 		
 		$client_options = array(
 			'body' => json_encode($data),
-			'debug' => fopen('debug.txt','w'),
+			//'debug' => fopen('debug.txt','w'),
 			);
 
 		try {
@@ -214,6 +222,8 @@ class Inventory {
 				}
 			}
 
+			
+
 			// If none of the above have worked, we're either not looking at a variant, or it's missing data.
 			// See if the Wombat ID matches a BC parent SKU
 			if(empty($id)) {
@@ -228,18 +238,94 @@ class Inventory {
 
 				$data = $response->json(array('object'=>TRUE));
 
-				if($response->getStatusCode() == 204) {
-					$this->doException(null, "No product could be found for ID: {$sku}, and no bigcommerce_id, bigcommerce_parent_id, or bigcommerce_parent_sku was provided.");
-				} else {
+				if($response->getStatusCode() != 204) {
 					$id = $data[0]->id;
+					
+				} else {
+					//$this->doException(null, "No product could be found for ID: {$sku}, and no bigcommerce_id, bigcommerce_parent_id, or bigcommerce_parent_sku was provided.");
 				}
 
+			}
+
+			// If still empty, get all products from store, and search through them to find a variant SKU
+			if(empty($id)) {
+				$product_count = $this->getProductCount();
+
+				$id = $this->scanProducts($wombat_obj->product_id,$product_count);
+			}
+
+			if(empty($id)) {
+				$this->doException(null, "No product could be found for ID: {$sku}, and no bigcommerce_id, bigcommerce_parent_id, or bigcommerce_parent_sku was provided.");
 			}
 			
 			$this->bc_id = $id;
 		}
 
 		return $this->bc_id;
+	}
+
+	/**
+	 * Get a count of all store products
+	 */
+	public function getProductCount() {
+		$client = $this->client;
+		$count = 0;
+
+		try {
+			$response = $client->get("products/count");
+		} catch (\Exception $e) {
+			$this->doException($e,'fetching bigcommerce product count');
+		}
+
+		$data = $response->json(array('object'=>TRUE));
+
+		$count = $data->count;
+
+		return $count;
+	}
+
+	/**
+	 * Scan through store products for a variant SKU
+	 */
+	public function scanProducts($variant_id,$product_count) {
+		$client = $this->client;
+		$page_size = 10;
+		$page = 1;
+		$id = false;
+
+		while(true) {
+			try {
+				$response = $client->get("products",array('query'=>array('limit'=>$page_size,'page'=>$page)));
+			} catch (\Exception $e) {
+				$this->doException($e,'scanning bigcommerce products');
+			}
+
+			if($response->getStatusCode() == 204) {
+				break;
+			}
+
+			$data = $response->json(array('object'=>TRUE));
+			
+			foreach($data as $product) {
+				
+				if(!empty($product->option_set_id)) {
+					$sku_id = $this->getSkuFromProduct($product->id,$variant_id);
+					if($sku_id) {
+						$id = array(
+							'parent_id'=>$product->id,
+							'sku_id' => $sku_id
+							);
+						break;
+					}
+
+				}
+				
+			}
+
+			$page++;
+		}
+
+		return $id;
 	}
 
 	/**

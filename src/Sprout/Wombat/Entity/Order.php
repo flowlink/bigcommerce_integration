@@ -42,7 +42,7 @@ class Order {
 			return false;
 
 		$wombat_obj = (object) array(
-			'id'	=> strtoupper($this->getHashId($bc_obj->id)).'_S',
+			'id'	=> strtoupper($this->getHashId($bc_obj->id)).'-S',
 			'order_id' => strtoupper($this->getHashId($bc_obj->id)),
 			'email' => $bc_obj->billing_address->email,
 			'cost' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
@@ -122,6 +122,7 @@ class Order {
 			'totals' => (object) array(
 				'item' =>  (float) number_format($bc_obj->subtotal_ex_tax, 2, '.', ''),
 				'adjustment' => 0,
+				'discount' => (float) number_format(($bc_obj->discount_amount + $bc_obj->coupon_discount) * -1.0, 2, '.', ''),
 				'tax' => (float) number_format($bc_obj->total_tax, 2, '.', ''),
 				'shipping' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
 				'payment' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
@@ -196,7 +197,7 @@ class Order {
 				'name' => 'Tax',
 				'value' => (float) number_format($bc_obj->total_tax, 2, '.', '')
 			);
-			$wombat_obj->totals->adjustment += $bc_obj->total_tax;
+			//$wombat_obj->totals->adjustment += $bc_obj->total_tax;
 		}
 		
 		if($bc_obj->wrapping_cost_ex_tax > 0) { // GIFT WRAPPING
@@ -226,14 +227,12 @@ class Order {
 				'name' => 'Coupons',
 				'value' => (float) number_format($bc_obj->coupon_discount * -1, 2, '.', '')
 			);
-			$wombat_obj->totals->adjustment += ($bc_obj->coupon_discount * -1);
 		}
 		if($bc_obj->discount_amount > 0) { // DISCOUNT
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Discount',
 				'value' => (float) number_format($bc_obj->discount_amount * -1, 2, '.', '')
 			);
-			$wombat_obj->totals->adjustment += ($bc_obj->discount_amount * -1);	
 		}
 		
 		/*** PAYMENTS ***/
@@ -323,7 +322,7 @@ class Order {
 		$id = $this->data['wombat']['id'];
 
 		if((stripos($id, $hash) !== false) && (strlen($id) >= strlen($hash))) {
-			$id = str_ireplace($hash.'_', '', $id);
+			$id = str_ireplace($hash.'-', '', $id);
 		}
 		return $id;
 	}
@@ -402,6 +401,6 @@ class Order {
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
 		
-		return $hash.'_'.$id;
+		return $hash.'-'.$id;
 	}
 }

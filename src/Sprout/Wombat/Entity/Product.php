@@ -403,6 +403,7 @@ class Product {
 						$response = $client->put("products/$bc_id/images/$image_id",$client_options);
 					}
 				} catch (\Exception $e) {
+					$this->deleteProduct($bc_id);
 					$this->doException($e,'pushing product images');
 				}
 
@@ -434,7 +435,7 @@ class Product {
 						$response = $client->put("products/$bc_id/custom_fields/$custom_field_id",$client_options);
 					}
 				} catch (\Exception $e) {
-
+					$this->deleteProduct($bc_id);
 					$this->doException($e,'pushing resource "properties"');
 				}
 
@@ -474,6 +475,7 @@ class Product {
 						$response = $client->put("products/$bc_id/skus/$sku_id",$client_options);
 					}
 				} catch (\Exception $e) {
+					$this->deleteProduct($bc_id);
 					$this->doException($e,'pushing variant '.$variant['sku']);
 				}
 
@@ -524,6 +526,7 @@ class Product {
 						$response = $client->put("products/$bc_id/rules/$rule_id",$client_options);
 					}
 				} catch (\Exception $e) {
+					$this->deleteProduct($bc_id);
 					$this->doException($e,'pushing rules for variant '.$variant['sku']);
 				}
 				$bigcommerce_rule = $response->json(array('object'=>TRUE));
@@ -656,18 +659,20 @@ class Product {
 		$options = array_map("strtoupper",$wombat_obj->options);
 		sort($options); //sort the items so we can compare 
 		
-		//for each option set, construct an array of option names to match against the Wombat array
-		foreach ($option_sets as $option_set) {
-			$set_options = array();
-			if(!empty($option_set->options)) {
-				foreach($option_set->options as $set_option)	{
-					$set_options[] = strtoupper($set_option->display_name);
-				}
-				
-				sort($set_options);
+		if(count($option_sets)) {
+			//for each option set, construct an array of option names to match against the Wombat array
+			foreach ($option_sets as $option_set) {
+				$set_options = array();
+				if(!empty($option_set->options)) {
+					foreach($option_set->options as $set_option)	{
+						$set_options[] = strtoupper($set_option->display_name);
+					}
+					
+					sort($set_options);
 
-				if($set_options == $options) {
-					$output = $option_set->id;
+					if($set_options == $options) {
+						$output = $option_set->id;
+					}
 				}
 			}
 		}
@@ -819,6 +824,8 @@ class Product {
 		$request_data = $this->request_data;
 
 		if(empty($this->option_sets)) {
+
+			$this->option_sets = array();
 			//get the option sets from BigCommerce
 			try {
 				$response = $client->get("option_sets");
@@ -828,21 +835,23 @@ class Product {
 
 			$results = $response->json(array('object'=>TRUE));
 			
-			foreach($results as $option_set) {
-				//$option_set->_processed = false;
-				$resource = substr($option_set->options->resource,1);
+			if(count($results)) {
+				foreach($results as $option_set) {
+					//$option_set->_processed = false;
+					$resource = substr($option_set->options->resource,1);
 
-				//retrieve the option set's options & add them to it
-				try {
-					$response = $client->get($resource);
-				} catch (\Exception $e) {
-					$this->doException($e,'fetching product options');
+					//retrieve the option set's options & add them to it
+					try {
+						$response = $client->get($resource);
+					} catch (\Exception $e) {
+						$this->doException($e,'fetching product options');
+					}
+
+					$results = $response->json(array('object'=>TRUE));
+					
+					$option_set->options = $results;
+					$this->option_sets[$option_set->id] = $option_set;
 				}
-
-				$results = $response->json(array('object'=>TRUE));
-				
-				$option_set->options = $results;
-				$this->option_sets[$option_set->id] = $option_set;
 			}
 		}
 		return $this->option_sets;
@@ -963,9 +972,11 @@ class Product {
 					// echo "OPT VAL: ".print_r($values,true).PHP_EOL;
 					
 					$value_id = 0;
-					foreach($values as $value) {
-						if(strtoupper($variant_opt_value) == strtoupper($value->value)) {
-							$value_id = $value->id;
+					if(count($values)) {
+						foreach($values as $value) {
+							if(strtoupper($variant_opt_value) == strtoupper($value->value)) {
+								$value_id = $value->id;
+							}
 						}
 					}
 					if(!$value_id) {
@@ -980,6 +991,7 @@ class Product {
 				}
 			}
 			if(empty($sku_option['product_option_id']) || empty($sku_option['option_value_id'])) {
+				$this->deleteProduct($product_id);
 				$this->doException(null,"Could not match variant options against BigCommerce options. Check that the option names are not misspelt and that variant options names agree with master product option list.");
 			}
 			// echo "SKU OPT: ".print_r($sku_option,true).PHP_EOL;
@@ -1069,6 +1081,21 @@ class Product {
 		$data = $response->json(array('object'=>TRUE));
 
 		return $data[0]->id;
+	}
+
+	/**
+	 * Delete a product in BigCommerce
+	 */
+	public function deleteProduct($product_id) {
+		$client = $this->client;
+
+		try {
+			$response = $client->delete("products/{$product_id}");
+		} catch( \Exception $e ) {
+			$this->doException($e, "deleting product after error");
+		}
+
+		// @todo: response should have 204 code on success - do anything with that?
 	}
 	
 	/**
