@@ -656,18 +656,20 @@ class Product {
 		$options = array_map("strtoupper",$wombat_obj->options);
 		sort($options); //sort the items so we can compare 
 		
-		//for each option set, construct an array of option names to match against the Wombat array
-		foreach ($option_sets as $option_set) {
-			$set_options = array();
-			if(!empty($option_set->options)) {
-				foreach($option_set->options as $set_option)	{
-					$set_options[] = strtoupper($set_option->display_name);
-				}
-				
-				sort($set_options);
+		if(count($option_sets)) {
+			//for each option set, construct an array of option names to match against the Wombat array
+			foreach ($option_sets as $option_set) {
+				$set_options = array();
+				if(!empty($option_set->options)) {
+					foreach($option_set->options as $set_option)	{
+						$set_options[] = strtoupper($set_option->display_name);
+					}
+					
+					sort($set_options);
 
-				if($set_options == $options) {
-					$output = $option_set->id;
+					if($set_options == $options) {
+						$output = $option_set->id;
+					}
 				}
 			}
 		}
@@ -819,6 +821,8 @@ class Product {
 		$request_data = $this->request_data;
 
 		if(empty($this->option_sets)) {
+
+			$this->option_sets = array();
 			//get the option sets from BigCommerce
 			try {
 				$response = $client->get("option_sets");
@@ -828,21 +832,23 @@ class Product {
 
 			$results = $response->json(array('object'=>TRUE));
 			
-			foreach($results as $option_set) {
-				//$option_set->_processed = false;
-				$resource = substr($option_set->options->resource,1);
+			if(count($results)) {
+				foreach($results as $option_set) {
+					//$option_set->_processed = false;
+					$resource = substr($option_set->options->resource,1);
 
-				//retrieve the option set's options & add them to it
-				try {
-					$response = $client->get($resource);
-				} catch (\Exception $e) {
-					$this->doException($e,'fetching product options');
+					//retrieve the option set's options & add them to it
+					try {
+						$response = $client->get($resource);
+					} catch (\Exception $e) {
+						$this->doException($e,'fetching product options');
+					}
+
+					$results = $response->json(array('object'=>TRUE));
+					
+					$option_set->options = $results;
+					$this->option_sets[$option_set->id] = $option_set;
 				}
-
-				$results = $response->json(array('object'=>TRUE));
-				
-				$option_set->options = $results;
-				$this->option_sets[$option_set->id] = $option_set;
 			}
 		}
 		return $this->option_sets;
