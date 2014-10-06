@@ -963,9 +963,11 @@ class Product {
 					// echo "OPT VAL: ".print_r($values,true).PHP_EOL;
 					
 					$value_id = 0;
-					foreach($values as $value) {
-						if(strtoupper($variant_opt_value) == strtoupper($value->value)) {
-							$value_id = $value->id;
+					if(count($values)) {
+						foreach($values as $value) {
+							if(strtoupper($variant_opt_value) == strtoupper($value->value)) {
+								$value_id = $value->id;
+							}
 						}
 					}
 					if(!$value_id) {
