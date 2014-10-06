@@ -45,7 +45,7 @@ class Inventory {
 			$wombat_obj->bigcommerce_parent_id = $bc_id['parent_id'];
 			$wombat_obj->bigcommerce_sku_id = $bc_id['sku_id'];
 		} else {
-			$wombat_obj->bigcommrce_id = $bc_id;
+			$wombat_obj->bigcommerce_id = $bc_id;
 		}
 
 		return array(

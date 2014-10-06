@@ -473,11 +473,16 @@ class Shipment {
 			if(!$id) {
 				$wombat_id = $this->data['wombat']['id'];
 				
-				//If id ends in _S, this is a fake ID created during create_shipments. (The ID is actually the order_id in this case)thi
+				//If id ends in _S, this is a fake ID created during create_shipments. (The ID is actually the order_id in this case)
 				if(substr($wombat_id, -2) != '-S' && (stripos($wombat_id, $hash) !== false) &&(strlen($wombat_id) >= strlen($hash))) {
 					$id = str_ireplace($hash.'-', '', $wombat_id);
 				}
-				
+			}
+
+			//check whether the order has any shipments already
+			if(!$id) {
+				$order_id = $this->getBCID('order');
+				$this->getBCIDFromOrder($order_id);
 			}
 		} else {
 			if(!empty($this->data['wombat']['bigcommerce_order_id'])) {
@@ -487,11 +492,53 @@ class Shipment {
 				
 				if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
 					$id = str_ireplace($hash.'-', '', $id);
+
+					if (substr($wombat_id, -2) != '-S') {
+						$id = substr($id,0,-2);
+					}
 				}
 			}
 		}
 		return $id;
 	}
+
+	/**
+	 * Fetch any existing shipments for the order, and compare products to see if this shipment matches
+	 */
+	public function getBCIDFromOrder($order_id) {
+		$client = $this->client;
+		$id = 0;
+		$wombat_obj = (object) $this->data['wombat'];
+
+		try {
+			$response = $client->get("orders/$order_id/shipments");
+		} catch (\Exception $e) {
+			$this->doException($e,'retrieving existing shipments');
+		}		
+
+		if($response->getStatusCode() != 204) {
+			$shipments = $response->json(array('object'=>TRUE));
+
+			foreach ($shipments as $shipment) {
+				$items = $shipment->items;
+				$match = false;
+
+				foreach ($items as $item) {
+					foreach($wombat_obj->items as $wombat_item) {
+						if($item->order_product_id == $wombat_item['bigcommerce_id']) {
+							$match = true;
+						}
+					}
+				}
+
+				if($match) {
+					$id = $shipment->id;
+					break;
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Add the store hash to the object ID
