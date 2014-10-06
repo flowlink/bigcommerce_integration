@@ -462,8 +462,6 @@ class Shipment {
 	 */
 	public function getBCID($fetch = "shipment") {
 		
-
-
 		$hash = $this->request_data['hash'];
 		if($fetch == 'shipment') {
 			$id = 0;
@@ -492,7 +490,8 @@ class Shipment {
 				
 				if((stripos($id, $hash) !== false) &&(strlen($id) >= strlen($hash))) {
 					$id = str_ireplace($hash.'-', '', $id);
-					if (substr($id, -2) != '-S') {
+					
+					if (substr($id, -2) == '-S') {
 						$id = substr($id,0,-2);
 					}
 				}
@@ -508,9 +507,9 @@ class Shipment {
 		$client = $this->client;
 		$id = 0;
 		$wombat_obj = (object) $this->data['wombat'];
-
+		
 		try {
-			$response = $client->get("orders/$order_id/shipments");
+			$response = $client->get("orders/$order_id/shipments",array('debug'=>fopen('debug.txt','w')));
 		} catch (\Exception $e) {
 			$this->doException($e,'retrieving existing shipments');
 		}		
