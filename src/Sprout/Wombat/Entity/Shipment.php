@@ -331,6 +331,8 @@ class Shipment {
 			$client = $this->client;
 
 			$order_id = $this->getBCID('order');
+
+			$wombat_obj = (object) $this->data['wombat'];
 		
 			try {
 				$response = $client->get("orders/$order_id/shipping_addresses");
