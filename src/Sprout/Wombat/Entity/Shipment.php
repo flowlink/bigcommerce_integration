@@ -42,7 +42,8 @@ class Shipment {
 		$id = $this->getBCID('shipment');
 
 		//format our data for BC	
-		$bc_data = $this->getBigCommerceObject();
+		$action = ($id)? 'update':'create';
+		$bc_data = $this->getBigCommerceObject($action);
 		$options = array(
 			'body' => (string)json_encode($bc_data),
 			//'debug'=>fopen('debug.txt', 'w')
