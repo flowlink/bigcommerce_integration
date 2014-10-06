@@ -509,6 +509,7 @@ class WombatController {
 				}
 			}
 
+			unset($request_data['parameters']['status_id']);
 		} else {
 			$order_ids[] = $request_data['parameters']['order_id'];
 		}
@@ -547,6 +548,11 @@ class WombatController {
 		}
 
 		if(!empty($shipments)) {
+
+			if(isset($request_data['parameters']['min_date_modified'])) {
+				$request_data['parameters']['min_date_modified'] = $this->getCurrentISODate();
+			}
+
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
