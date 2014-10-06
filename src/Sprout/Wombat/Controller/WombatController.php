@@ -64,6 +64,10 @@ class WombatController {
 				}
 			}
 
+			if(isset($request_data['parameters']['min_date_modified'])) {
+				$request_data['parameters']['min_date_modified'] = $this->getCurrentISODate();
+			}
+
 			//return our success code & data
 			$response = array(
 				'request_id' => $request_data['request_id'],
@@ -259,7 +263,7 @@ class WombatController {
 			}
 
 			if(isset($request_data['parameters']['min_date_modified'])) {
-				$request_data['parameters']['min_date_modified'] = date(\DateTime::ISO8601);
+				$request_data['parameters']['min_date_modified'] = $this->getCurrentISODate();
 			}
 
 			//return our success code & data
@@ -401,6 +405,10 @@ class WombatController {
 					$wombatModel->loadAttachedResources();
 					$wombat_data[] = $wombatModel->getWombatObject();
 				}
+			}
+
+			if(isset($request_data['parameters']['min_date_created'])) {
+				$request_data['parameters']['min_date_created'] = $this->getCurrentISODate();
 			}
 
 			//return our success code & data
@@ -878,6 +886,10 @@ class WombatController {
 		if($response->getStatusCode() != 200) {
 			throw new Exception("$request_id:::::Error received from BigCommerce:::::".$response->getBody(),500);
 		}
+	}
+
+	private function getCurrentISODate() {
+		return date(\DateTime::ISO8601);
 	}
 
 	/*
