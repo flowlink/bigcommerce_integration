@@ -100,20 +100,22 @@ $app->error(function (\Exception $e, $code) use($app) {
     if(count($external_response)) {
         $additional_details .= " Additional details: ";
     }
-    foreach ($external_response as $key => $ext) {
-        $additional_details .= "$key : ";
-        if(isset($ext->status)) {
-            $additional_details .= "Status: $ext->status ";
-        }
-        if(isset($ext->message)) {
-            $additional_details .= "Message: $ext->message ";   
-        }
-        if(isset($ext->details)) {
-            $additional_details .= "Details: ";
-            if(is_array($ext->details) || is_object($ext->details)) {
-                $details = (array) $ext->details;
-                foreach($details as $k => $v) {
-                    $additional_details .= "$k : $v ";
+    if(count($external_response)) {
+        foreach ($external_response as $key => $ext) {
+            $additional_details .= "$key : ";
+            if(isset($ext->status)) {
+                $additional_details .= "Status: $ext->status ";
+            }
+            if(isset($ext->message)) {
+                $additional_details .= "Message: $ext->message ";   
+            }
+            if(isset($ext->details)) {
+                $additional_details .= "Details: ";
+                if(is_array($ext->details) || is_object($ext->details)) {
+                    $details = (array) $ext->details;
+                    foreach($details as $k => $v) {
+                        $additional_details .= "$k : $v ";
+                    }
                 }
             }
         }

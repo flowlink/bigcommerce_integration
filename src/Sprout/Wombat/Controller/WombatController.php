@@ -235,7 +235,7 @@ class WombatController {
 		try {		 
 			$response = $client->get('orders', array('query' => $request_data['parameters']));
 		} catch(\Exception $e) {
-			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce:::::'.$e->getResponse()->getBody(),500);			
+			throw new \Exception($request_data['request_id'].':::::Error received from BigCommerce while getting orders:::::'.$e->getResponse()->getBody(),500);			
 		}
 		$response_status = intval($response->getStatusCode());
 
