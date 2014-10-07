@@ -333,6 +333,8 @@ class Shipment {
 			$order_id = $this->getBCID('order');
 
 			$wombat_obj = (object) $this->data['wombat'];
+
+			$address_id = 0;
 		
 			try {
 				$response = $client->get("orders/$order_id/shipping_addresses");
@@ -347,6 +349,7 @@ class Shipment {
 			}
 
 			foreach($addresses as $address) {
+				
 				if(
 					$address->first_name 		== $wombat_obj->shipping_address['firstname']	&&
 					$address->last_name 		== $wombat_obj->shipping_address['lastname']	&&
@@ -360,6 +363,10 @@ class Shipment {
 					$address_id = $address->id;
 				}
 				
+			}
+
+			if(!$address_id) {
+				$this->doException(null,"Bigcommerce requires shipping address to match Order's.");
 			}
 		}
 
