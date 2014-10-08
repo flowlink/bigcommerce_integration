@@ -766,7 +766,7 @@ class WombatController {
 
 		$store_url = str_replace(array('/api/v2/','/api/v2'),'',$legacy_api_info['path']);
 
-		$parameters = $this->transformParams($parameters,$request->getPathInfo());
+		$parameters = $this->transformParams($parameters,$request->getPathInfo(),$request_id);
 
 		$storehasher = $app['bc.storehash'];
 
@@ -802,7 +802,7 @@ class WombatController {
 	/**
 	 * Perform any alterations on parameters necessary before passing to BC
 	 */
-	private function transformParams($parameters,$context) {
+	private function transformParams($parameters,$context,$request_id) {
 		
 		foreach ($parameters as $key => $value) {
 			switch ($key) {
@@ -812,12 +812,22 @@ class WombatController {
 				case 'max_date_modified':
 				case 'min_date_last_imported':
 				case 'max_date_last_imported':
-					//for products, transform any ISO formatted dates to RFC2822
-					if($context == '/get_products' || $context == '/get_customers') {
-						date_default_timezone_set('UTC');
-						$date = date(\DateTime::RFC2822,strtotime($value));
-						$parameters[$key] = $date;
+				
+					// for products & customers, transform any ISO formatted dates to RFC2822
+					// otherwise, attempt to re-process into ISO to fix up any minor formatting errors
+					// (BigCommerce will fail without leading zeros, e.g.)
+					
+					$time = strtotime($value);
+					if($time === false) {
+						throw new \Exception("{$request_id}:::::Unable to process date value {$value} for parameter {$key}");
 					}
+
+					if($context == '/get_products' || $context == '/get_customers') {
+						$date = date(\DateTime::RFC2822,strtotime($value));
+					} else {
+						$date = date(\DateTime::ISO8601,strtotime($value));
+					}
+					$parameters[$key] = $date;
 					break;
 				
 				default:
