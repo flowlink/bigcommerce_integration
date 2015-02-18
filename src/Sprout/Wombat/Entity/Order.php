@@ -47,6 +47,7 @@ class Order {
 			'email' => $bc_obj->billing_address->email,
 			'cost' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
 			'status' => 'ready',
+			'order_status' => strtolower($bc_obj->status),
 			'stock_location' => 'default',
 			'shipping_method' => $bc_obj->_shipping_address->shipping_method,
 			'tracking' => '',
