@@ -208,6 +208,7 @@ class Shipment {
 			'updated_at' 			=> date(\DateTime::ISO8601,strtotime($bc_obj->date_created)),
 			'shipped_at'			=> date(\DateTime::ISO8601,strtotime($bc_obj->date_created)),
 			'status'					=> 'ready',
+			'order_status'    => strtolower($bc_obj->status),
 			'stock_location'	=> 'default',
 			'bigcommerce_id'	=> $bc_obj->id,
 			);
