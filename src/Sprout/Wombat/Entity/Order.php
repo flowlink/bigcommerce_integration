@@ -128,7 +128,7 @@ class Order {
 				'shipping' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
 				'payment' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
 				'order' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
-				
+                'order_message' => $bc_obj->customer_message,				
 			),
 			'line_items' => array(),
 			'adjustments' => array(),
