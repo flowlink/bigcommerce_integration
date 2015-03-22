@@ -13,7 +13,7 @@ class Order {
 	 * @var array $_attached_resources Field names for data not contained in the main object that will need to be retrieved
 	 */
 	private $_attached_resources = array('products','shipping_addresses','coupons');
-	
+
 	/**
 	 * @var array $client Http client object to perform additional requests
 	 */
@@ -80,7 +80,7 @@ class Order {
 				'bigcommerce_id' => $bc_prod->id,
 				'bigcommerce_product_id' => $bc_prod->product_id,
 			);
-			
+
 			// add chosen product options to line item
 			if(!empty($bc_prod->product_options)) {
 				$new_line_item->options = array();
@@ -93,7 +93,7 @@ class Order {
 					$new_line_item->options[] = $new_option;
 				}
 			}
-			
+
 			$wombat_obj->items[] = $new_line_item;
 		}
 		$this->data['wombat'] = $wombat_obj;
@@ -111,7 +111,7 @@ class Order {
 			$bc_obj = (object) $this->data['bc'];
 		else
 			return false;
-		
+
 		/*** WOMBAT OBJECT ***/
 		$wombat_obj = (object) array(
 			'id' => strtoupper($this->getHashId($bc_obj->id)),
@@ -127,12 +127,12 @@ class Order {
 				'tax' => (float) number_format($bc_obj->total_tax, 2, '.', ''),
 				'shipping' => (float) number_format($bc_obj->shipping_cost_ex_tax, 2, '.', ''),
 				'payment' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
-				'order' => (float) number_format($bc_obj->total_inc_tax, 2, '.', ''),
-                'order_message' => $bc_obj->customer_message,				
+				'order' => (float) number_format($bc_obj->total_inc_tax, 2, '.', '')
 			),
+      'order_message' => $bc_obj->customer_message,
 			'line_items' => array(),
 			'adjustments' => array(),
-			
+
 			'billing_address' => (object) array(
 				//'id' => $bc_obj->_shipping_address->id,
 				'firstname' => $bc_obj->billing_address->first_name,
@@ -175,7 +175,7 @@ class Order {
 				'bigcommerce_id' => $bc_prod->id,
 				'bigcommerce_product_id' => $bc_prod->product_id,
 			);
-			
+
 			// add chosen product options to line item
 			if(!empty($bc_prod->product_options)) {
 				$new_line_item->options = array();
@@ -188,7 +188,7 @@ class Order {
 					$new_line_item->options[] = $new_option;
 				}
 			}
-			
+
 			$wombat_obj->line_items[] = $new_line_item;
 		}
 
@@ -200,7 +200,7 @@ class Order {
 			);
 			//$wombat_obj->totals->adjustment += $bc_obj->total_tax;
 		}
-		
+
 		if($bc_obj->wrapping_cost_ex_tax > 0) { // GIFT WRAPPING
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Gift Wrapping',
@@ -208,7 +208,7 @@ class Order {
 			);
 			$wombat_obj->totals->adjustment += $bc_obj->wrapping_cost_ex_tax;
 		}
-		
+
 		if($bc_obj->shipping_cost_ex_tax > 0) { // SHIPPING
 			$wombat_obj->adjustments[] = (object) array(
 				'name' => 'Shipping',
@@ -235,7 +235,7 @@ class Order {
 				'value' => (float) number_format($bc_obj->discount_amount * -1, 2, '.', '')
 			);
 		}
-		
+
 		/*** PAYMENTS ***/
 		$wombat_obj->payments[] = (object) array(
 			'number' => $this->getPaymentNumber($bc_obj),
@@ -258,7 +258,7 @@ class Order {
 			$wombat_obj = (object) $this->data['wombat'];
 		else
 			return false;
-		
+
 		// @todo: real data
 		if($action == 'create') { //this distinction is temporary for testing data, but we may use it for individual fields
 			$bc_obj = (object) array(
@@ -307,7 +307,7 @@ class Order {
 				'staff_notes' => 'Updating an order!',
 			);
 		}
-	
+
 		$this->data['bc'] = $bc_obj;
 		return $bc_obj;
 	}
@@ -327,7 +327,7 @@ class Order {
 		}
 		return $id;
 	}
-	
+
 	/**
 	 * Perform any sub-requests to load additional resources
 	 */
@@ -336,16 +336,16 @@ class Order {
 		$client = $this->client;
 		$request_data = $this->request_data;
 
-		// request attached resources		
+		// request attached resources
 		foreach($this->_attached_resources as $resource_name) {
 			if(isset($this->data['bc']->$resource_name)) {
 				$resource = $this->data['bc']->$resource_name;
-			
+
 				// don't load in resources with id 0 (they don't exist)
-				if(strpos($resource->url,'\/0.json') === FALSE) {				
+				if(strpos($resource->url,'\/0.json') === FALSE) {
 					// replace request shell with loaded resource
 					$response = $client->get($resource->url);
-					
+
 					if(intval($response->getStatusCode()) === 200)
 						$this->data['bc']->$resource_name = $response->json(array('object'=>TRUE));
 					else
@@ -353,9 +353,9 @@ class Order {
 				}
 			}
 		}
-		
+
 		// organize extra resources (not really in API)
-		
+
 		/* First shipping address */
 		if(!empty($this->data['bc']->shipping_addresses)) {
 			$this->data['bc']->_shipping_address = $this->data['bc']->shipping_addresses[0];
@@ -401,7 +401,7 @@ class Order {
 	 */
 	public function getHashId($id) {
 		$hash = $this->request_data['hash'];
-		
+
 		return $hash.'-'.$id;
 	}
 }
