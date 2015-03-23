@@ -50,8 +50,6 @@ class Order {
 			'order_status' => strtolower($bc_obj->status),
 			'stock_location' => 'default',
 			'shipping_method' => $bc_obj->_shipping_address->shipping_method,
-			'tracking' => '',
-
 			);
 
 		if(!empty($bc_obj->_shipping_address)) {
