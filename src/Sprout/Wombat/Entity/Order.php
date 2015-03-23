@@ -68,6 +68,21 @@ class Order {
 			);
 		}
 
+    if(!empty($bc_obj->billing_address)) {
+			$wombat_obj->billing_address = (object) array(
+				'firstname' => $bc_obj->billing_address->first_name,
+				'lastname' => $bc_obj->billing_address->last_name,
+				'address1' => $bc_obj->billing_address->street_1,
+				'address2' => $bc_obj->billing_address->street_2,
+				'zipcode' => $bc_obj->billing_address->zip,
+				'city' => $bc_obj->billing_address->city,
+				'state' => $bc_obj->billing_address->state,
+				'country' => $bc_obj->billing_address->country_iso2,
+				'phone' => $bc_obj->billing_address->phone,
+				'bigcommerce_id' => $bc_obj->billing_address->id,
+			);
+		}
+
 		/*** LINE_ITEMS ***/
 		foreach($bc_obj->products as $bc_prod) {
 			$new_line_item = (object) array(
