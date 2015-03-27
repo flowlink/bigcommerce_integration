@@ -108,6 +108,7 @@ class Order {
       }
 
       $wombat_obj->items[] = $new_line_item;
+      $wombat_obj->bigcommerce_items[] = $new_line_item;
     }
     $this->data['wombat'] = $wombat_obj;
     return $wombat_obj;
